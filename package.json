@@ -1,0 +1,36 @@
+{
+  "name": "glslify",
+  "version": "0.0.0",
+  "description": "command line glsl module system builder",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/index.js"
+  },
+  "bin": {
+    "glslify": "./bin/glslify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisdickinson/glslify.git"
+  },
+  "keywords": [
+    "glslify",
+    "glsl",
+    "module",
+    "system",
+    "cli"
+  ],
+  "author": "Chris Dickinson <chris@neversaw.us>",
+  "license": "MIT",
+  "preferGlobal": "true",
+  "dependencies": {
+    "glslify-stream": "0.0.0",
+    "nopt": "~2.0.0",
+    "glsl-deparser": "0.0.2",
+    "glsl-min-stream": "0.0.2",
+    "cssauron-glsl": "0.0.0",
+    "shortest": "0.0.0",
+    "cssauron": "0.0.2",
+    "through": "~1.X.X"
+  }
+}
