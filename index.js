@@ -1,68 +1,126 @@
-var tty = require('tty')
-  , nopt = require('nopt')
-  , path = require('path')
-  , fs = require('fs')
-  , shorthand
-  , options
+module.exports = transform
 
 var glslify = require('glslify-stream')
   , deparser = require('glsl-deparser')
-  , minify = require('glsl-min-stream')
+  , replace = require('replace-method')
+  , concat = require('concat-stream')
+  , evaluate = require('static-eval')
+  , extract = require('glsl-extract')
+  , through = require('through')
+  , resolve = require('resolve')
+  , path = require('path')
 
-options = {
-    'minify': Boolean
-  , 'output': path
-  , 'help': Boolean
-}
+function transform(filename) {
+  var stream = through(write, end)
+    , accum = []
+    , len = 0
 
-shorthand = {
-    'h': ['--help']
-  , 'm': ['--minify']
-  , 'o': ['--output']
-}
+  return stream
 
-module.exports = run
-
-function help() {
-/*
-glslify [-o|--output file] [-h|--help] file
-
-  compile multiple glsl modules with #pragma: glslify directives into a single
-  glsl output.
-
-  if no output option is defined, output will be written to stdout.
-
-  arguments:
-
-    --help, -h                  this help message.
-
-    --output path, -o path      output result of minification to file represented by `path`.
-                                by default, output will be written to stdout.
-
-*/
-
-  var str = help+''
-
-  process.stdout.write(str.slice(str.indexOf('/*')+3, str.indexOf('*/')))
-}
-
-function run() {
-  var parsed = nopt(options, shorthand)
-
-  if(parsed.help || !parsed.argv.remain.length) {
-    return help(), process.exit(1)
+  function write(buf) {
+    accum[accum.length] = buf
+    len += buf.length
   }
 
-  var should_minify = parsed.minify
-    , output = parsed.output ? fs.createWriteStream(parsed.output) : process.stdout
-    , input = path.resolve(parsed.argv.remain[0])
-    , stream
+  function end() {
+    var src = replace(Buffer.concat(accum).toString('utf8'))
+      , loading = 0
+      , map = {}
+      , id = 0
 
-  stream = glslify(input)
+    src.replace(['glslify'], function(node) {
+      var fragment
+        , current
+        , vertex
+        , config
 
-  if(should_minify)
-    stream = stream.pipe(minify())
+      current = ++id
 
-  stream.pipe(deparser(!should_minify))
-        .pipe(output)
+      if(!node.arguments.length) {
+        return
+      }
+
+      config = evaluate(node.arguments[0], {
+          __filename: filename
+        , __dirname: path.dirname(filename)
+      })
+
+      if(typeof config !== 'object') {
+        return
+      }
+
+      ++loading
+      glslify(config.vertex)
+        .pipe(deparser())
+        .pipe(concat(onvertex))
+
+      glslify(config.fragment)
+        .pipe(deparser())
+        .pipe(concat(onfragment))
+
+      return {
+          type: 'CallExpression'
+        , callee: {
+              type: 'CallExpression'
+            , callee: {
+                  type: 'Identifier'
+                , name: 'require'
+              }
+            , arguments: [
+                  {type: 'Literal', value: 'glslify/adapter.js'}
+              ]
+          }
+        , arguments: [
+              {type: 'Identifier', name: '__glslify_' + current + '_vert'}
+            , {type: 'Identifier', name: '__glslify_' + current + '_frag'}
+            , {type: 'Identifier', name: '__glslify_' + current + '_unis'}
+            , {type: 'Identifier', name: '__glslify_' + current + '_attrs'}
+          ]
+      }
+
+      function onvertex(data) {
+        vertex = data
+        vertex && fragment && done()
+      }
+
+      function onfragment(data) {
+        fragment = data
+        vertex && fragment && done()
+      }
+
+      function done() {
+        extract(vertex + '\n' + fragment)(function(err, info) {
+          if(err) {
+            return stream.emit('error', err)
+          }
+
+          --loading
+
+          map[current] = [vertex, fragment, info.uniforms, info.attributes]
+
+          if(!loading) {
+            finish()
+          }
+        })
+      }
+    })
+
+    if(!loading) {
+      finish()
+    }
+
+    function finish() {
+      var code = src.code()
+        , unmap
+
+      unmap = {vert: 0, frag: 1, unis: 2, attrs: 3}
+
+      code = code.replace(/__glslify_(\d+)_(vert|frag|unis|attrs)/g, function(all, num, type) {
+        return JSON.stringify(map[num][unmap[type]])
+      })
+
+      stream.queue(code)
+      stream.queue(null)
+    }
+  }
 }

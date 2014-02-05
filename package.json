@@ -31,6 +31,16 @@
     "cssauron-glsl": "0.0.0",
     "shortest": "0.0.0",
     "cssauron": "0.0.2",
-    "through": "~1.X.X"
+    "through": "~1.X.X",
+    "replace-method": "0.0.0",
+    "static-eval": "~0.1.0",
+    "resolve": "~0.6.1",
+    "concat-stream": "~1.4.1",
+    "gl-shader": "~2.1.0",
+    "glsl-extract": "0.0.2",
+    "gl-shader-core": "~1.1.0"
+  },
+  "browser": {
+    "index.js": "browser.js"
   }
 }
