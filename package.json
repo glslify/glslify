@@ -1,6 +1,6 @@
 {
   "name": "glslify",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "command line glsl module system builder",
   "main": "index.js",
   "scripts": {
