@@ -1,6 +1,45 @@
 # glslify
 
-a module system? in my GLSL? unpossible!
+a module system for GLSL and a transform enabling easy access to GLSL Shaders in JavaScript.
+
+```javascript
+var shell = require('gl-now')()
+
+var createShader = glslify({
+    vertex: './vertex.glsl'
+  , fragment: './fragment.glsl'
+})
+
+var program
+
+shell.on('gl-init', function() {
+  program = createShader(shell.gl)
+})
+
+```
+
+## As a Browserify transform:
+
+```bash
+$ browserify entry.js -t glslify > bundle.js
+```
+
+glslify will find and replace all instances of `glslify({vertex: path, fragment: path})`
+with a function that takes a webgl context and returns a [shader instance](npm.im/gl-shader-core).
+
+Recommended usage:
+
+```javascript
+var glslify = require('glslify')    // requiring `glslify` is safe in this context.
+                                    // if the program is run without the transform,
+                                    // it'll output a helpful error message.
+glslify({fragment: "path", vertex: "path"})
+```
+
+## As a GLSL module system:
+
+glslify can be run as a standalone command as well:
+
 
 ```bash
 $ glslify my-module.glsl > output.glsl

@@ -25,12 +25,21 @@
   "preferGlobal": "true",
   "dependencies": {
     "glslify-stream": "0.0.1",
-    "nopt": "~2.0.0",
+    "nopt": "^2.0.0",
     "glsl-deparser": "0.0.2",
     "glsl-min-stream": "0.0.2",
     "cssauron-glsl": "0.0.0",
     "shortest": "0.0.0",
     "cssauron": "0.0.2",
-    "through": "~1.X.X"
+    "through": "^2.3.4",
+    "replace-method": "0.0.0",
+    "static-eval": "^0.1.0",
+    "resolve": "^0.6.1",
+    "concat-stream": "^1.4.1",
+    "glsl-extract": "0.0.2",
+    "gl-shader-core": "^2.0.0"
+  },
+  "browser": {
+    "index.js": "browser.js"
   }
 }
