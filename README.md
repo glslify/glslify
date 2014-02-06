@@ -2,25 +2,10 @@
 
 a module system for GLSL and a transform enabling easy access to GLSL Shaders in JavaScript.
 
-```javascript
-var shell = require('gl-now')()
-
-var createShader = glslify({
-    vertex: './vertex.glsl'
-  , fragment: './fragment.glsl'
-})
-
-var program
-
-shell.on('gl-init', function() {
-  program = createShader(shell.gl)
-})
-
-```
-
 ## As a Browserify transform:
 
 ```bash
+$ npm install --save glslify
 $ browserify entry.js -t glslify > bundle.js
 ```
 
@@ -33,7 +18,39 @@ Recommended usage:
 var glslify = require('glslify')    // requiring `glslify` is safe in this context.
                                     // if the program is run without the transform,
                                     // it'll output a helpful error message.
-glslify({fragment: "path", vertex: "path"})
+var shell = require('gl-now')()
+
+var createShader = glslify({
+    vertex: './vertex.glsl'
+  , fragment: './fragment.glsl'
+})
+
+var program
+
+shell.on('gl-init', function() {
+  program = createShader(shell.gl)
+})
+```
+
+As part of the transform, the program will be analyzed for its **uniforms** and **attributes**,
+so once you have a `program` instance, the following will work:
+
+```javascript
+
+// given a glsl program containing:
+//
+//   uniform vec2 color;
+//   uniform mat4 view;
+
+program.bind()
+program.uniforms.color = [0.5, 1.0]
+program.uniforms.view = [
+  1, 0, 0, 0
+, 0, 1, 0, 0
+, 0, 0, 1, 0
+, 0, 0, 0, 1
+]
+
 ```
 
 ## As a GLSL module system:
@@ -45,17 +62,21 @@ glslify can be run as a standalone command as well:
 $ glslify my-module.glsl > output.glsl
 ```
 
-glslify is [browserify](https://github.com/substack/node-browserify) for GLSL.
-
-it allows you to write GLSL modules that export a local function, variable, or type,
+glslify allows you to write GLSL modules that export a local function, variable, or type,
 and `require` those modules to bring that export into another module.
 
-lookups work like node's `require` -- that is, it'll work relatively to the file first,
+Lookups work like node's `require` -- that is, it'll work relatively to the file first,
 and then work from the file's directory on up to the root directory looking for a package
 in `node_modules/`.
 
-output is plain GLSL -- so you'll need to run [exportify](https://github.com/substack/exportify)
-on them to use them with browserify.
+## example files
+
+| [`main.glsl`](#mainglsl) | [`file1.glsl`](#file1glsl) | [`file2.glsl`](#file2glsl) |
+|---------------------------|-----------------------------|-----------------------------|
+
+### main.glsl
+
+[back to file list](#example-files)
 
 ```c
 // main.glsl
@@ -64,7 +85,12 @@ uniform float time;
 uniform vec2 mouse;
 uniform vec2 resolution;
 
+// require a function from another file!
 #pragma glslify: program_one = require(./file1)
+
+// require a function from another file, and replace
+// `local_value` in that file with `resolution.x` from
+// this scope.
 #pragma glslify: program_two = require(./file2, local_value=resolution.x)
 
 int modulo(float x, float y) {
@@ -82,6 +108,11 @@ void main(void) {
 }
 ```
 
+
+### file1.glsl
+
+[back to file list](#example-files)
+
 ```c
 // file1.glsl
 void main(void) {
@@ -90,6 +121,10 @@ void main(void) {
 
 #pragma glslify: export(main)
 ```
+
+### file2.glsl
+
+[back to file list](#example-files)
 
 ```c
 // file2.glsl
