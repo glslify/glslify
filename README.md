@@ -10,7 +10,7 @@ $ browserify entry.js -t glslify > bundle.js
 ```
 
 glslify will find and replace all instances of `glslify({vertex: path, fragment: path})`
-with a function that takes a webgl context and returns a [shader instance](npm.im/gl-shader-core).
+with a function that takes a webgl context and returns a [shader instance](http://npm.im/gl-shader-core).
 
 Recommended usage:
 
