@@ -6,9 +6,14 @@ var glslify = require('glslify-stream')
   , concat = require('concat-stream')
   , evaluate = require('static-eval')
   , extract = require('glsl-extract')
+  , first = require('first-match')
   , through = require('through')
   , resolve = require('resolve')
+  , esprima = require('esprima')
+  , sleuth = require('sleuth')
   , path = require('path')
+
+var usageRegex = /['"]glslify['"]/g
 
 function transform(filename) {
   var stream = through(write, end)
@@ -23,12 +28,24 @@ function transform(filename) {
   }
 
   function end() {
-    var src = replace(Buffer.concat(accum).toString('utf8'))
+    var buf = Buffer.concat(accum).toString('utf8')
+
+    // break out early if it doesn't look like
+    // we're going to find any shaders here,
+    // parsing and transforming the AST is expensive!
+    if(!usageRegex.test(buf)) return bail(buf)
+
+    var ast = esprima.parse(buf)
+      , name = glslifyname(ast)
+      , src = replace(ast)
       , loading = 0
       , map = {}
       , id = 0
 
-    src.replace(['glslify'], function(node) {
+    // bail early if glslify isn't required at all
+    if(!name) return bail(buf)
+
+    src.replace([name], function(node) {
       var fragment
         , current
         , vertex
@@ -122,5 +139,19 @@ function transform(filename) {
       stream.queue(code)
       stream.queue(null)
     }
+
+    function bail(code) {
+      stream.queue(code)
+      stream.queue(null)
+    }
   }
+}
+
+function glslifyname(ast) {
+  var required = sleuth(ast)
+  var keys = Object.keys(required)
+
+  return first(keys, function(key) {
+    return required[key] === 'glslify'
+  })
 }
