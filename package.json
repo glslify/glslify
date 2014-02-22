@@ -37,7 +37,6 @@
     "resolve": "^0.6.1",
     "concat-stream": "^1.4.1",
     "glsl-extract": "0.0.2",
-    "first-match": "0.0.1",
     "sleuth": "0.0.0",
     "esprima": "^1.0.4",
     "gl-shader-core": "^2.0.0"

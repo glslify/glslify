@@ -6,7 +6,6 @@ var glslify = require('glslify-stream')
   , concat = require('concat-stream')
   , evaluate = require('static-eval')
   , extract = require('glsl-extract')
-  , first = require('first-match')
   , through = require('through')
   , resolve = require('resolve')
   , esprima = require('esprima')
@@ -33,7 +32,9 @@ function transform(filename) {
     // break out early if it doesn't look like
     // we're going to find any shaders here,
     // parsing and transforming the AST is expensive!
-    if(!usageRegex.test(buf)) return bail(buf)
+    if(!usageRegex.test(buf)) {
+      return bail(buf)
+    }
 
     var ast = esprima.parse(buf)
       , name = glslifyname(ast)
@@ -43,7 +44,9 @@ function transform(filename) {
       , id = 0
 
     // bail early if glslify isn't required at all
-    if(!name) return bail(buf)
+    if(!name) {
+      return bail(buf)
+    }
 
     src.replace([name], function(node) {
       var fragment
@@ -149,9 +152,11 @@ function transform(filename) {
 
 function glslifyname(ast) {
   var required = sleuth(ast)
-  var keys = Object.keys(required)
+  var name
 
-  return first(keys, function(key) {
-    return required[key] === 'glslify'
+  Object.keys(required).some(function(key) {
+    return name = (required[key] === 'glslify' ? key : null)
   })
+
+  return name
 }
