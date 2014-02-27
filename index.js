@@ -60,9 +60,10 @@ function transform(filename) {
         return
       }
 
+      var cwd = path.dirname(filename)
       config = evaluate(node.arguments[0], {
           __filename: filename
-        , __dirname: path.dirname(filename)
+        , __dirname: cwd
       })
 
       if(typeof config !== 'object') {
@@ -70,11 +71,11 @@ function transform(filename) {
       }
 
       ++loading
-      glslify(config.vertex)
+      glslify(path.resolve(cwd, config.vertex))
         .pipe(deparser())
         .pipe(concat(onvertex))
 
-      glslify(config.fragment)
+      glslify(path.resolve(cwd, config.fragment))
         .pipe(deparser())
         .pipe(concat(onfragment))
 
