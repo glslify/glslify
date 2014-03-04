@@ -12,7 +12,7 @@ var glslify = require('glslify-stream')
   , sleuth = require('sleuth')
   , path = require('path')
 
-var usageRegex = /['"]glslify['"]/g
+var usageRegex = /['"]glslify['"]/
 
 function transform(filename) {
   var stream = through(write, end)
