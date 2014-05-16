@@ -71,18 +71,23 @@ function transform(filename) {
         return
       }
 
-      var inline = !!config.inline
       var frag = config.fragment || config.frag
       var vert = config.vertex || config.vert
+      var inline = !!config.inline
+
+      var streamOpts = {
+          input: inline
+        , transform: config.transform
+      }
 
       ++loading
       var vert_stream = glslify(
         inline ? filename : path.resolve(cwd, vert)
-      , { input: inline })
+      , streamOpts)
 
       var frag_stream = glslify(
         inline ? filename : path.resolve(cwd, frag)
-      , { input: inline })
+      , streamOpts)
 
       if (inline) {
         from([vert]).pipe(vert_stream)

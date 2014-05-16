@@ -59,6 +59,8 @@ The following options may be passed into glslify's transformed constructor:
 * `vertex`: the vertex shader to use.
 * `inline`: instead of loading the vertex/fragment shaders from a file path,
   use the string values of these options directly to generate the shaders.
+* `transform`: a string or array of strings naming browserify-transform stream
+  modules you would like to use to transform these shaders.
 
 ## As a GLSL module system:
 
