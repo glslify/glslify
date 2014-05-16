@@ -72,8 +72,8 @@ function transform(filename) {
       }
 
       var inline = !!config.inline
-      var frag = config.fragment
-      var vert = config.vertex
+      var frag = config.fragment || config.frag
+      var vert = config.vertex || config.vert
 
       ++loading
       var vert_stream = glslify(
