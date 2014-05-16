@@ -33,13 +33,14 @@
     "cssauron": "0.0.2",
     "through": "^2.3.4",
     "replace-method": "0.0.0",
-    "static-eval": "^0.1.0",
+    "static-eval": "git://github.com/hughsk/static-eval#array-call-context",
     "resolve": "^0.6.1",
     "concat-stream": "^1.4.1",
     "glsl-extract": "0.0.2",
     "sleuth": "0.0.0",
     "esprima": "^1.0.4",
-    "gl-shader-core": "^2.0.0"
+    "gl-shader-core": "^2.0.0",
+    "new-from": "^0.0.3"
   },
   "browser": {
     "index.js": "browser.js"
