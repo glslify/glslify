@@ -10,6 +10,7 @@ var glslify = require('glslify-stream')
   , resolve = require('resolve')
   , esprima = require('esprima')
   , sleuth = require('sleuth')
+  , from = require('new-from')
   , path = require('path')
 
 var usageRegex = /['"]glslify['"]/
@@ -70,12 +71,34 @@ function transform(filename) {
         return
       }
 
+      var frag = config.fragment || config.frag
+      var vert = config.vertex || config.vert
+      var inline = !!config.inline
+
+      var streamOpts = {
+          input: inline
+        , transform: config.transform
+      }
+
       ++loading
-      glslify(path.resolve(cwd, config.vertex))
+      var vert_stream = glslify(
+        inline ? filename : path.resolve(cwd, vert)
+      , streamOpts)
+
+      var frag_stream = glslify(
+        inline ? filename : path.resolve(cwd, frag)
+      , streamOpts)
+
+      if(inline) {
+        from([vert]).pipe(vert_stream)
+        from([frag]).pipe(frag_stream)
+      }
+
+      vert_stream
         .pipe(deparser())
         .pipe(concat(onvertex))
 
-      glslify(path.resolve(cwd, config.fragment))
+      frag_stream
         .pipe(deparser())
         .pipe(concat(onfragment))
 
