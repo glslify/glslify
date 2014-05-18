@@ -89,7 +89,7 @@ function transform(filename) {
         inline ? filename : path.resolve(cwd, frag)
       , streamOpts)
 
-      if (inline) {
+      if(inline) {
         from([vert]).pipe(vert_stream)
         from([frag]).pipe(frag_stream)
       }
