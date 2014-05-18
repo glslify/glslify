@@ -39,7 +39,7 @@
     "resolve": "^0.6.1",
     "shortest": "0.0.0",
     "sleuth": "0.0.0",
-    "static-eval": "git://github.com/hughsk/static-eval#array-call-context",
+    "static-eval": "^0.2.2",
     "through": "^2.3.4"
   },
   "browser": {
