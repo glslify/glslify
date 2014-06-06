@@ -179,6 +179,34 @@ Exports a local name from the current module. If the current module is the root,
 a no-op. There may be only one exported `NAME` per module. The `NAME` may represent a
 type, function, or variable.
 
+
+# With ThreeJS
+
+You can use the `sourceOnly` option to integrate glslfiy with ThreeJS and other WebGL frameworks. This will return an object with `vertex` and `fragment` shader source, which you can then compile yourself.
+
+In ThreeJS it might look like this:  
+
+```js
+var myShader = glslify({
+    vertex: './vertex.glsl',
+    fragment: './fragment.glsl',
+    sourceOnly: true
+});
+
+//optionally do something with our uniforms/attribs
+console.log( myShader.uniforms, myShader.attributes );
+
+//setup custom ThreeJS material...
+var mat = new THREE.ShaderMaterial({
+    vertexShader: myShader.vertex,
+    fragmentShader: myShader.fragment
+    uniforms: { 
+      // setup your uniforms..
+    }
+});
+
+```
+
 # License
 
 MIT
