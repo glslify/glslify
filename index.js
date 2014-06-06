@@ -71,6 +71,7 @@ function transform(filename) {
         return
       }
 
+      var sourceOnly = !!config.sourceOnly
       var frag = config.fragment || config.frag
       var vert = config.vertex || config.vert
       var inline = !!config.inline
@@ -111,7 +112,7 @@ function transform(filename) {
                 , name: 'require'
               }
             , arguments: [
-                  {type: 'Literal', value: 'glslify/adapter.js'}
+                  {type: 'Literal', value: sourceOnly ? 'glslify/simple-adapter.js' : 'glslify/adapter.js'}
               ]
           }
         , arguments: [
