@@ -6,6 +6,7 @@ var glslify = require('glslify-stream')
   , concat = require('concat-stream')
   , evaluate = require('static-eval')
   , extract = require('glsl-extract')
+  , emit = require('emit-function')
   , through = require('through')
   , resolve = require('resolve')
   , esprima = require('esprima')
@@ -96,10 +97,12 @@ function transform(filename) {
       }
 
       vert_stream
+        .on('file', emit(stream, 'file'))
         .pipe(deparser())
         .pipe(concat(onvertex))
 
       frag_stream
+        .on('file', emit(stream, 'file'))
         .pipe(deparser())
         .pipe(concat(onfragment))
 

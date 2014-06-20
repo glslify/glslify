@@ -27,6 +27,7 @@
     "concat-stream": "^1.4.1",
     "cssauron": "0.0.2",
     "cssauron-glsl": "0.0.0",
+    "emit-function": "0.0.2",
     "esprima": "^1.0.4",
     "gl-shader-core": "^2.0.0",
     "glsl-deparser": "0.0.2",
