@@ -98,11 +98,13 @@ function transform(filename) {
 
       vert_stream
         .on('file', emit(stream, 'file'))
+        .on('error', emit(stream, 'error'))
         .pipe(deparser())
         .pipe(concat(onvertex))
 
       frag_stream
         .on('file', emit(stream, 'file'))
+        .on('error', emit(stream, 'error'))
         .pipe(deparser())
         .pipe(concat(onfragment))
 
