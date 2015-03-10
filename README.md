@@ -109,6 +109,24 @@ var src = "#define GLSLIFY 1\n\nprecision mediump float; ..."
 console.log(src)
 ```
 
+### Inline mode
+
+By passing the `inline` option as true, you can write your
+shader inline instead of requiring it to be in a separate
+file:
+
+``` javascript
+var glslify = require('glslify')
+
+var src = glslify(`
+  precision mediump float;
+
+  void main() {
+    gl_FragColor = vec4(1.0);
+  }
+`, { inline: true })
+```
+
 ## Usage
 
 ### Installing a GLSL Module
@@ -225,6 +243,99 @@ struct Light {
 };
 
 #pragma glslify: export(Light)
+```
+
+## Source Transforms
+
+Source transforms are a feature inspired by browserify, allowing you to
+modify your GLSL source at build time on a per-package basis. This is
+useful both for transpilation (e.g. converting from or to
+[HLSL](http://en.wikipedia.org/wiki/High-Level_Shading_Language)) or for
+making incremental improvements to GLSL syntax. (e.g. you can use
+[glslify-hex](https://github.com/hughsk/glslify-hex) to include CSS-style
+hex strings for colors in place of `vec3`s).
+
+There are three kinds of source transform:
+
+* **Local transforms**, the default. These are applied per-file, and only
+  applied to a single package. If you're defining it via the CLI using `-t`
+  it'll only apply itself to files outside of `node_modules`, but you
+  can include it in `package.json` too: these will be applied only to that
+  package without interfering with any of the package's parents or children.
+* **Global transforms** are applied after local transforms to every file,
+  regardless of whether or not it's a dependency.
+* **Post transforms** are applied to the entire output file once it's been
+  bundled. Generally, you want to reserve this for very specific use cases
+  such as whole-shader optimisation.
+
+There are a number of ways to use a transform. Start by
+installing it in your project:
+
+``` bash
+npm install --save glslify-hex
+```
+
+The preferred way to enable a transform is through your project's
+`package.json` file's `glslify.transform` property, like so:
+
+``` json
+{
+  "name": "my-project",
+  "dependencies": {
+    "glslify-hex": "^2.0.0",
+    "glslify": "^2.0.0"
+  },
+  "glslify": {
+    "transform": ["glslify-hex"]
+  }
+}
+```
+
+You may also include arguments to your transform as you would
+with browserify:
+
+``` json
+{
+  "name": "my-project",
+  "dependencies": {
+    "glslify-hex": "^2.0.0",
+    "glslify": "^2.0.0"
+  },
+  "glslify": {
+    "transform": [
+      ["glslify-hex", {
+        "option-1": true,
+        "option-2": 42
+      }]
+    ]
+  }
+}
+```
+
+Note that this method is only available for local transforms.
+
+You may also specify transforms via the CLI:
+
+``` bash
+glslify -t local-transform -g global-transform -p post-transform
+```
+
+Or when using the browserify transform by including them as
+options like so:
+
+``` javascript
+var glslify = require('glslify')
+
+glslify(__dirname + '/shader.glsl', {
+  globalTransform: ['global-transform'],
+  postTransform: ['post-transform'],
+  transform: [
+    ["glslify-hex", {
+      "option-1": true,
+      "option-2": 42
+    }]
+  ]
+})
 ```
 
 ## Further Reading
