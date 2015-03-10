@@ -38,10 +38,9 @@ function transform(jsFilename) {
 
     // Extract and add our local transforms.
     var transforms = opts.transform || []
-    ;(Array.isArray(transforms)
-      ?  transforms
-      : [transforms]
-    ).forEach(function(transform) {
+
+    transforms = Array.isArray(transforms) ? transforms : [transforms]
+    transforms.forEach(function(transform) {
       depper.transform(transform)
     })
 

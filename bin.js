@@ -9,8 +9,14 @@ const bl            = require('bl')
 const fs            = require('fs')
 
 const INPUT  = path.join(__dirname, '__bogus__')
-const argv   = minimist(process.argv.slice(2))
 const depper = glslifyDeps({ readFile: readFile })
+const argv   = minimist(process.argv.slice(2), {
+  alias: {
+    t: 'transform',
+    o: 'output',
+    h: 'help'
+  }
+})
 
 var input = ''
 
@@ -30,7 +36,6 @@ if (argv._.length) {
   return depper.add(argv._[0], output)
 }
 
-process.stdin.resume()
 process.stdin.pipe(bl(function(err, src) {
   if (err) throw err
 
@@ -43,7 +48,10 @@ process.stdin.pipe(bl(function(err, src) {
 //
 function help() {
   fs.createReadStream(path.join(__dirname, 'usage.txt'))
-    .once('close', function() { console.error() })
+    .once('close', function() {
+      console.error()
+      process.exit(1)
+    })
     .pipe(process.stderr)
 }
 
