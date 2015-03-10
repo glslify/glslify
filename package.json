@@ -1,53 +1,49 @@
 {
   "name": "glslify",
-  "version": "1.6.0",
-  "description": "command line glsl module system builder",
+  "version": "2.0.0",
+  "description": "A node.js-style module system for GLSL!",
   "main": "index.js",
-  "scripts": {
-    "test": "node test/index.js"
-  },
   "bin": {
-    "glslify": "./bin/glslify"
+    "glslify": "bin.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/gl-modules/glslify.git"
-  },
-  "keywords": [
-    "glslify",
-    "glsl",
-    "module",
-    "system",
-    "cli"
-  ],
+  "license": "MIT",
+  "scripts": {},
   "authors": [
     "Hugh Kennedy <hughskennedy@gmail.com> (http://hughsk.io/)",
     "Mikola Lysenko <mikolalysenko@gmail.com> (http://0fps.net)",
     "Chris Dickinson <chris@neversaw.us> (http://neversaw.us)"
   ],
-  "license": "MIT",
-  "preferGlobal": "true",
   "dependencies": {
-    "concat-stream": "^1.4.1",
-    "cssauron": "0.0.2",
-    "cssauron-glsl": "0.0.0",
-    "emit-function": "0.0.2",
-    "esprima": "^1.0.4",
-    "gl-shader-core": "^2.0.0",
-    "glsl-deparser": "0.0.2",
-    "glsl-extract": "0.0.2",
-    "glsl-min-stream": "0.0.2",
-    "glslify-stream": "^0.4.0",
-    "new-from": "^0.0.3",
-    "nopt": "^2.0.0",
-    "replace-method": "0.0.0",
-    "resolve": "^0.6.1",
-    "shortest": "0.0.0",
-    "sleuth": "0.0.0",
-    "static-eval": "^0.2.2",
-    "through": "^2.3.4"
+    "bl": "^0.9.4",
+    "glsl-resolve": "0.0.1",
+    "glslify-bundle": "^2.0.0",
+    "glslify-deps": "^1.0.3",
+    "minimist": "^1.1.0",
+    "resolve": "^1.1.5",
+    "static-module": "^1.1.2",
+    "through2": "^0.6.3"
   },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stackgl/glslify.git"
+  },
+  "keywords": [
+    "ecosystem:stackgl",
+    "browserify-transform",
+    "glslify",
+    "glsl",
+    "module",
+    "system",
+    "cli",
+    "shader",
+    "webgl"
+  ],
   "browser": {
     "index.js": "browser.js"
+  },
+  "homepage": "https://github.com/stackgl/glslify",
+  "bugs": {
+    "url": "https://github.com/stackgl/glslify/issues"
   }
 }
