@@ -82,7 +82,7 @@ function transform(jsFilename) {
         var tr = posts.shift()
         if (!tr) return done()
 
-        var target = resolve.sync(tr.name, {
+        var target = nodeResolve.sync(tr.name, {
           basedir: path.dirname(filename)
         })
 

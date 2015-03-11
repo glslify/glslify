@@ -7,7 +7,9 @@
     "glslify": "bin.js"
   },
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test": "node test"
+  },
   "authors": [
     "Hugh Kennedy <hughskennedy@gmail.com> (http://hughsk.io/)",
     "Mikola Lysenko <mikolalysenko@gmail.com> (http://0fps.net)",
@@ -17,13 +19,19 @@
     "bl": "^0.9.4",
     "glsl-resolve": "0.0.1",
     "glslify-bundle": "^2.0.0",
-    "glslify-deps": "^1.1.1",
+    "glslify-deps": "^1.1.2",
     "minimist": "^1.1.0",
     "resolve": "^1.1.5",
     "static-module": "^1.1.2",
     "through2": "^0.6.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "^8.1.3",
+    "from2": "^1.3.0",
+    "glslify-hex": "^2.0.0",
+    "tap-spec": "^2.2.1",
+    "tape": "^3.5.0"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/stackgl/glslify.git"
