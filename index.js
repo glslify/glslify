@@ -36,6 +36,7 @@ function transform(jsFilename) {
     var posts  = []
     var stream = through()
     var depper = glslifyDeps({
+      cwd: path.dirname(jsFilename),
       readFile: readFile
     })
 
