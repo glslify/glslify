@@ -1,1 +1,2 @@
+require('./cli')
 require('./browserify')
