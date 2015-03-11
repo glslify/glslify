@@ -76,7 +76,7 @@ function transform(jsFilename) {
         // stringified for use in our JavaScript.
         var source = glslifyBundle(tree)
       } catch(e) {
-        return sm.emit('error', err)
+        return sm.emit('error', e)
       }
 
       // Finally, this applies our --post transforms
