@@ -317,7 +317,7 @@ Note that this method is only available for local transforms.
 You may also specify transforms via the CLI:
 
 ``` bash
-glslify -t local-transform -g global-transform -p post-transform
+glslify -t 'local-transform' -g 'global-transform' -p 'post-transform'
 ```
 
 Or when using the browserify transform by including them as
