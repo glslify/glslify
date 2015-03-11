@@ -19,7 +19,7 @@
     "bl": "^0.9.4",
     "glsl-resolve": "0.0.1",
     "glslify-bundle": "^2.0.1",
-    "glslify-deps": "^1.1.2",
+    "glslify-deps": "^1.2.0",
     "minimist": "^1.1.0",
     "resolve": "^1.1.5",
     "static-module": "^1.1.2",

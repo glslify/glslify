@@ -1,7 +1,10 @@
 const exec    = require('child_process').exec
+const spawn   = require('child_process').spawn
 const quote   = require('shell-quote').quote
 const test    = require('tape')
 const path    = require('path')
+const fs      = require('fs')
+const bl      = require('bl')
 const glslify = require.resolve('../bin')
 
 test('cli: globe.frag', function(t) {
@@ -38,4 +41,27 @@ test('cli: globe.vert', function(t) {
 
     t.end()
   })
+})
+
+test('cli: globe.vert (inline)', function(t) {
+  var ps = spawn(glslify, [ '-t', 'glslify-hex' ])
+
+  fs.createReadStream(path.join(__dirname, 'fixtures', 'globe.vert'))
+    .pipe(ps.stdin)
+
+  ps.stdout.pipe(bl(function(err, stdout1) {
+    if (err) return t.ifError(err)
+
+    stdout1 += ''
+
+    exec(quote([ glslify,
+      path.join(__dirname, 'fixtures', 'globe.vert'),
+      '-t', 'glslify-hex'
+    ]), function(err, stdout2) {
+      if (err) return t.ifError(err)
+
+      t.equal(stdout1.trim(), stdout2.trim())
+      t.end()
+    })
+  }))
 })

@@ -8,8 +8,7 @@ const path          = require('path')
 const bl            = require('bl')
 const fs            = require('fs')
 
-const INPUT  = path.join(process.cwd(), '__bogus__')
-const depper = glslifyDeps({ readFile: readFile })
+const depper = glslifyDeps()
 const argv   = minimist(process.argv.slice(2), {
   alias: {
     t: 'transform',
@@ -51,8 +50,7 @@ if (argv._.length) {
 process.stdin.pipe(bl(function(err, src) {
   if (err) throw err
 
-  input = src
-  depper.add(INPUT, output)
+  depper.inline(src, process.cwd(), output)
 }))
 
 //
@@ -65,15 +63,6 @@ function help() {
       process.exit(1)
     })
     .pipe(process.stderr)
-}
-
-//
-// Wrapper function for accepting a file
-// on stdin
-//
-function readFile(filename, done) {
-  if (filename === INPUT) return done(null, input)
-  fs.readFile(filename, 'utf8', done)
 }
 
 //
