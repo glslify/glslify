@@ -6,6 +6,7 @@ const browserify = require('browserify')
 const from       = require('from2')
 const test       = require('tape')
 const glslify    = require('../')
+const vm         = require('vm')
 const bl         = require('bl')
 const fs         = require('fs')
 
@@ -122,6 +123,42 @@ test('browserify transform: applying a post transform', function(t) {
         t.ok(tree.length, 'Contains at least one file')
         t.end()
       })
+    })
+  }
+})
+
+test('browserify transform: inline', function(t) {
+  browserify().add(from([
+    'var glslify = require("glslify")\n',
+
+    'console.log(glslify("',
+      'precision mediump float;\\n',
+
+      '#pragma glslify: simplest = require(./fixtures/simple-export)\\n',
+
+      'void main() {',
+        'simplest();',
+      '}',
+    '", { inline: true }))'
+  ]))
+    .transform(glslify)
+    .bundle()
+    .pipe(bl(bundled))
+
+  function bundled(err, bundle) {
+    if (err) return t.ifError(err)
+
+    t.plan(2)
+
+    vm.runInNewContext(bundle, {
+      console: {
+        log: function(source) {
+          t.ok(typeof source === 'string', 'collected string')
+          t.ok(source.indexOf('gl_FragColor') !== -1, 'includes gl_FragColor')
+        }
+      }
+    }, function(err) {
+      t.ifError(err, 'executed without errors')
     })
   }
 })

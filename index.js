@@ -36,8 +36,7 @@ function transform(jsFilename) {
     var posts  = []
     var stream = through()
     var depper = glslifyDeps({
-      cwd: path.dirname(jsFilename),
-      readFile: readFile
+      cwd: path.dirname(jsFilename)
     })
 
     // Extract and add our local transforms.
@@ -58,17 +57,20 @@ function transform(jsFilename) {
     })
 
     if (opts.inline) {
-      var override = filename
-      filename = path.resolve(jsFilename)
+      depper.inline(filename
+        , path.dirname(jsFilename)
+        , addedDep)
     } else {
       filename = glslResolve.sync(filename, {
         basedir: path.dirname(jsFilename)
       })
+
+      depper.add(filename, addedDep)
     }
 
     // Builds a dependency tree starting from the
     // given `filename` using glslify-deps.
-    depper.add(filename, function(err, tree) {
+    function addedDep(err, tree) {
       if (err) return sm.emit('error', err)
 
       try {
@@ -104,20 +106,8 @@ function transform(jsFilename) {
         stream.push(JSON.stringify(source))
         stream.push(null)
       }
-    })
+    }
 
     return stream
-
-    // A custom readFile function, simply for the purpose
-    // of making the "inline" option work properly. This isn't
-    // included in glslify-deps because it complicates the code
-    // there.
-    function readFile(targetFilename, done) {
-      if (override && targetFilename === filename) {
-        return done(null, override)
-      }
-
-      fs.readFile(targetFilename, 'utf8', done)
-    }
   }
 }
