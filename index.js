@@ -8,6 +8,7 @@ var path          = require('path')
 var fs            = require('fs')
 
 module.exports = transform
+module.exports.bundle = bundle
 
 function transform(jsFilename) {
   if (path.extname(jsFilename) === '.json') return through()
@@ -17,7 +18,7 @@ function transform(jsFilename) {
   // of our choosing – in this case, our bundled glslify
   // shader source.
   var sm = staticModule({
-    glslify: bundle
+    glslify: streamBundle
   }, {
     vars: {
       __dirname: path.dirname(jsFilename),
@@ -30,84 +31,101 @@ function transform(jsFilename) {
 
   return sm
 
-  function bundle(filename, opts) {
-    opts = opts || {}
-
-    var posts  = []
+  function streamBundle(filename, opts) {
     var stream = through()
-    var depper = glslifyDeps({
-      cwd: path.dirname(jsFilename)
+
+    opts = opts || {}
+    opts.basedir = opts.basedir || path.dirname(jsFilename)
+
+    bundle(filename, opts, function(err, source) {
+      if (err) return stream.emit('error', err)
+
+      stream.push(JSON.stringify(source))
+      stream.push(null)
     })
-
-    // Extract and add our local transforms.
-    var transforms = opts.transform || []
-
-    transforms = Array.isArray(transforms) ? transforms : [transforms]
-    transforms.forEach(function(transform) {
-      transform = Array.isArray(transform) ? transform : [transform]
-
-      var name = transform[0]
-      var opts = transform[1] || {}
-
-      if (opts.post) {
-        posts.push({ name: name, opts: opts })
-      } else {
-        depper.transform(name, opts)
-      }
-    })
-
-    if (opts.inline) {
-      depper.inline(filename
-        , path.dirname(jsFilename)
-        , addedDep)
-    } else {
-      filename = glslResolve.sync(filename, {
-        basedir: path.dirname(jsFilename)
-      })
-
-      depper.add(filename, addedDep)
-    }
-
-    // Builds a dependency tree starting from the
-    // given `filename` using glslify-deps.
-    function addedDep(err, tree) {
-      if (err) return sm.emit('error', err)
-
-      try {
-        // Turn that dependency tree into a GLSL string,
-        // stringified for use in our JavaScript.
-        var source = glslifyBundle(tree)
-      } catch(e) {
-        return sm.emit('error', e)
-      }
-
-      // Finally, this applies our --post transforms
-      next()
-      function next() {
-        var tr = posts.shift()
-        if (!tr) return done()
-
-        var target = nodeResolve.sync(tr.name, {
-          basedir: path.dirname(filename)
-        })
-
-        var transform = require(target)
-
-        transform(null, source, {
-          post: true
-        }, function(err, data) {
-          if (err) throw err
-          if (data) source = data
-          next()
-        })
-      }
-
-      function done() {
-        stream.push(JSON.stringify(source))
-        stream.push(null)
-      }
-    }
 
     return stream
+  }
+}
+
+function bundle(filename, opts, done) {
+  opts = opts || {}
+
+  var defaultBase = opts.inline
+    ? process.cwd()
+    : path.dirname(filename)
+
+  var base   = path.resolve(opts.basedir || defaultBase)
+  var posts  = []
+  var depper = glslifyDeps({
+    cwd: base
+  })
+
+  // Extract and add our local transforms.
+  var transforms = opts.transform || []
+
+  transforms = Array.isArray(transforms) ? transforms : [transforms]
+  transforms.forEach(function(transform) {
+    transform = Array.isArray(transform) ? transform : [transform]
+
+    var name = transform[0]
+    var opts = transform[1] || {}
+
+    if (opts.post) {
+      posts.push({ name: name, opts: opts })
+    } else {
+      depper.transform(name, opts)
+    }
+  })
+
+  if (opts.inline) {
+    depper.inline(filename
+      , base
+      , addedDep)
+  } else {
+    filename = glslResolve.sync(filename, {
+      basedir: base
+    })
+
+    depper.add(filename, addedDep)
+  }
+
+  // Builds a dependency tree starting from the
+  // given `filename` using glslify-deps.
+  function addedDep(err, tree) {
+    if (err) return done(err)
+
+    try {
+      // Turn that dependency tree into a GLSL string,
+      // stringified for use in our JavaScript.
+      var source = glslifyBundle(tree)
+    } catch(e) {
+      return done(e)
+    }
+
+    // Finally, this applies our --post transforms
+    next()
+    function next() {
+      var tr = posts.shift()
+      if (!tr) return postDone()
+
+      var target = nodeResolve.sync(tr.name, {
+        basedir: path.dirname(filename)
+      })
+
+      var transform = require(target)
+
+      transform(null, source, {
+        post: true
+      }, function(err, data) {
+        if (err) throw err
+        if (data) source = data
+        next()
+      })
+    }
+
+    function postDone() {
+      done(null, source)
+    }
   }
 }

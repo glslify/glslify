@@ -412,6 +412,24 @@ var shader = glShader(gl,
 )
 ```
 
+## Module API
+
+You can use glslify from Node using `glslify.bundle`. The operation is
+performed asynchronously, but otherwise it shares the same API as
+glslify's browserify transform.
+
+### `glslify.bundle(file, opts, done)`
+
+Takes a `file` and calls `done(err, source)` with the finished shader
+when complete. Options include:
+
+* `inline`: if set to true, you can pass the GLSL source directly in
+  place of the `file` argument.
+* `transform`: an array of transforms to apply to the shader.
+* `basedir`: the directory from which to resolve modules from in your
+  first shader. Defaults to the first file's directory, or `process.cwd()`
+  if inline mode is enabled.
+
 ## Further Reading
 
 * [Modular and Versioned GLSL](http://mattdesl.svbtle.com/glslify) by [@mattdesl](http://mattdesl.svbtle.com/).
