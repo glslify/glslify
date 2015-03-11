@@ -1,192 +1,131 @@
+var glslifyBundle = require('glslify-bundle')
+var staticModule  = require('static-module')
+var glslifyDeps   = require('glslify-deps')
+var glslResolve   = require('glsl-resolve')
+var through       = require('through2')
+var nodeResolve   = require('resolve')
+var path          = require('path')
+var fs            = require('fs')
+
 module.exports = transform
+module.exports.bundle = bundle
 
-var glslify = require('glslify-stream')
-  , deparser = require('glsl-deparser')
-  , replace = require('replace-method')
-  , concat = require('concat-stream')
-  , evaluate = require('static-eval')
-  , extract = require('glsl-extract')
-  , emit = require('emit-function')
-  , through = require('through')
-  , resolve = require('resolve')
-  , esprima = require('esprima')
-  , sleuth = require('sleuth')
-  , from = require('new-from')
-  , path = require('path')
+function transform(jsFilename) {
+  if (path.extname(jsFilename) === '.json') return through()
 
-var usageRegex = /['"]glslify['"]/
-
-function transform(filename) {
-  var stream = through(write, end)
-    , accum = []
-    , len = 0
-
-  return stream
-
-  function write(buf) {
-    accum[accum.length] = buf
-    len += buf.length
-  }
-
-  function end() {
-    var buf = Buffer.concat(accum).toString('utf8')
-
-    // break out early if it doesn't look like
-    // we're going to find any shaders here,
-    // parsing and transforming the AST is expensive!
-    if(!usageRegex.test(buf)) {
-      return bail(buf)
+  // static-module is responsible for replacing any
+  // calls to glslify in your JavaScript with a string
+  // of our choosing – in this case, our bundled glslify
+  // shader source.
+  var sm = staticModule({
+    glslify: streamBundle
+  }, {
+    vars: {
+      __dirname: path.dirname(jsFilename),
+      __filename: jsFilename,
+      require: {
+        resolve: nodeResolve
+      }
     }
+  })
 
-    var ast = esprima.parse(buf)
-      , name = glslifyname(ast)
-      , src = replace(ast)
-      , loading = 0
-      , map = {}
-      , id = 0
+  return sm
 
-    // bail early if glslify isn't required at all
-    if(!name) {
-      return bail(buf)
-    }
+  function streamBundle(filename, opts) {
+    var stream = through()
 
-    src.replace([name], function(node) {
-      var fragment
-        , current
-        , vertex
-        , config
+    opts = opts || {}
+    opts.basedir = opts.basedir || path.dirname(jsFilename)
 
-      current = ++id
+    bundle(filename, opts, function(err, source) {
+      if (err) return stream.emit('error', err)
 
-      if(!node.arguments.length) {
-        return
-      }
-
-      var cwd = path.dirname(filename)
-      config = evaluate(node.arguments[0], {
-          __filename: filename
-        , __dirname: cwd
-      })
-
-      if(typeof config !== 'object') {
-        return
-      }
-
-      var sourceOnly = !!config.sourceOnly
-      var frag = config.fragment || config.frag
-      var vert = config.vertex || config.vert
-      var inline = !!config.inline
-
-      var streamOpts = {
-          input: inline
-        , transform: config.transform
-      }
-
-      ++loading
-      var vert_stream = glslify(
-        inline ? filename : path.resolve(cwd, vert)
-      , streamOpts)
-
-      var frag_stream = glslify(
-        inline ? filename : path.resolve(cwd, frag)
-      , streamOpts)
-
-      if(inline) {
-        from([vert]).pipe(vert_stream)
-        from([frag]).pipe(frag_stream)
-      }
-
-      vert_stream
-        .on('file', emit(stream, 'file'))
-        .on('error', emit(stream, 'error'))
-        .pipe(deparser())
-        .pipe(concat(onvertex))
-
-      frag_stream
-        .on('file', emit(stream, 'file'))
-        .on('error', emit(stream, 'error'))
-        .pipe(deparser())
-        .pipe(concat(onfragment))
-
-      return {
-          type: 'CallExpression'
-        , callee: {
-              type: 'CallExpression'
-            , callee: {
-                  type: 'Identifier'
-                , name: 'require'
-              }
-            , arguments: [
-                  {type: 'Literal', value: sourceOnly ? 'glslify/simple-adapter.js' : 'glslify/adapter.js'}
-              ]
-          }
-        , arguments: [
-              {type: 'Identifier', name: '__glslify_' + current + '_vert'}
-            , {type: 'Identifier', name: '__glslify_' + current + '_frag'}
-            , {type: 'Identifier', name: '__glslify_' + current + '_unis'}
-            , {type: 'Identifier', name: '__glslify_' + current + '_attrs'}
-          ]
-      }
-
-      function onvertex(data) {
-        vertex = data
-        vertex && fragment && done()
-      }
-
-      function onfragment(data) {
-        fragment = data
-        vertex && fragment && done()
-      }
-
-      function done() {
-        extract(vertex + '\n' + fragment)(function(err, info) {
-          if(err) {
-            return stream.emit('error', err)
-          }
-
-          --loading
-
-          map[current] = [vertex, fragment, info.uniforms, info.attributes]
-
-          if(!loading) {
-            finish()
-          }
-        })
-      }
+      stream.push(JSON.stringify(source))
+      stream.push(null)
     })
 
-    if(!loading) {
-      finish()
-    }
-
-    function finish() {
-      var code = src.code()
-        , unmap
-
-      unmap = {vert: 0, frag: 1, unis: 2, attrs: 3}
-
-      code = code.replace(/__glslify_(\d+)_(vert|frag|unis|attrs)/g, function(all, num, type) {
-        return JSON.stringify(map[num][unmap[type]])
-      })
-
-      stream.queue(code)
-      stream.queue(null)
-    }
-
-    function bail(code) {
-      stream.queue(code)
-      stream.queue(null)
-    }
+    return stream
   }
 }
 
-function glslifyname(ast) {
-  var required = sleuth(ast)
-  var name
+function bundle(filename, opts, done) {
+  opts = opts || {}
 
-  Object.keys(required).some(function(key) {
-    return name = (required[key] === 'glslify' ? key : null)
+  var defaultBase = opts.inline
+    ? process.cwd()
+    : path.dirname(filename)
+
+  var base   = path.resolve(opts.basedir || defaultBase)
+  var posts  = []
+  var depper = glslifyDeps({
+    cwd: base
   })
 
-  return name
+  // Extract and add our local transforms.
+  var transforms = opts.transform || []
+
+  transforms = Array.isArray(transforms) ? transforms : [transforms]
+  transforms.forEach(function(transform) {
+    transform = Array.isArray(transform) ? transform : [transform]
+
+    var name = transform[0]
+    var opts = transform[1] || {}
+
+    if (opts.post) {
+      posts.push({ name: name, opts: opts })
+    } else {
+      depper.transform(name, opts)
+    }
+  })
+
+  if (opts.inline) {
+    depper.inline(filename
+      , base
+      , addedDep)
+  } else {
+    filename = glslResolve.sync(filename, {
+      basedir: base
+    })
+
+    depper.add(filename, addedDep)
+  }
+
+  // Builds a dependency tree starting from the
+  // given `filename` using glslify-deps.
+  function addedDep(err, tree) {
+    if (err) return done(err)
+
+    try {
+      // Turn that dependency tree into a GLSL string,
+      // stringified for use in our JavaScript.
+      var source = glslifyBundle(tree)
+    } catch(e) {
+      return done(e)
+    }
+
+    // Finally, this applies our --post transforms
+    next()
+    function next() {
+      var tr = posts.shift()
+      if (!tr) return postDone()
+
+      var target = nodeResolve.sync(tr.name, {
+        basedir: path.dirname(filename)
+      })
+
+      var transform = require(target)
+
+      transform(null, source, {
+        post: true
+      }, function(err, data) {
+        if (err) throw err
+        if (data) source = data
+        next()
+      })
+    }
+
+    function postDone() {
+      done(null, source)
+    }
+  }
 }

@@ -1,8 +1,7 @@
-module.exports = noop
-
-function noop() {
+module.exports = function() {
   throw new Error(
-      'You should bundle your code ' +
-      'using `glslify` as a transform.'
+      "It appears that you're using glslify in browserify without "
+    + "its transform applied. Make sure that you've set up glslify as a source transform: "
+    + "https://github.com/substack/node-browserify#browserifytransform"
   )
 }
