@@ -338,6 +338,37 @@ glslify(__dirname + '/shader.glsl', {
 })
 ```
 
+## Migrating from glslify@1 to glslify@2
+
+There are two important changes to note:
+
+* [gl-shader](http://github.com/stackgl/gl-shader) is no longer bundled in with
+  glslify's browserify transform.
+* glslify now accepts files individually, rather than frag/vert pairings.
+
+The following:
+
+``` javascript
+var glslify = require('glslify')
+
+var shader = glslify({
+  frag: './shader.frag',
+  vert: './shader.vert'
+})(gl)
+```
+
+Should now be created like so:
+
+``` javascript
+var glShader = require('gl-shader')
+var glslify  = require('glslify')
+
+var shader = glShader(gl,
+  glslify('./shader.frag'),
+  glslify('./shader.vert')
+)
+```
+
 ## Further Reading
 
 * [Modular and Versioned GLSL](http://mattdesl.svbtle.com/glslify) by [@mattdesl](http://mattdesl.svbtle.com/).
