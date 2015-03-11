@@ -10,6 +10,8 @@ var fs            = require('fs')
 module.exports = transform
 
 function transform(jsFilename) {
+  if (path.extname(jsFilename) === '.json') return through()
+
   // static-module is responsible for replacing any
   // calls to glslify in your JavaScript with a string
   // of our choosing – in this case, our bundled glslify
