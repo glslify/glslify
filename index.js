@@ -31,6 +31,7 @@ function transform(jsFilename) {
   function bundle(filename, opts) {
     opts = opts || {}
 
+    var posts  = []
     var stream = through()
     var depper = glslifyDeps({
       readFile: readFile
@@ -41,7 +42,16 @@ function transform(jsFilename) {
 
     transforms = Array.isArray(transforms) ? transforms : [transforms]
     transforms.forEach(function(transform) {
-      depper.transform(transform)
+      transform = Array.isArray(transform) ? transform : [transform]
+
+      var name = transform[0]
+      var opts = transform[1] || {}
+
+      if (opts.post) {
+        posts.push({ name: name, opts: opts })
+      } else {
+        depper.transform(name, opts)
+      }
     })
 
     if (opts.inline) {
@@ -49,7 +59,7 @@ function transform(jsFilename) {
       filename = path.resolve(jsFilename)
     } else {
       filename = glslResolve.sync(filename, {
-        basedir: path.dirname(filename)
+        basedir: path.dirname(jsFilename)
       })
     }
 
@@ -62,13 +72,35 @@ function transform(jsFilename) {
         // Turn that dependency tree into a GLSL string,
         // stringified for use in our JavaScript.
         var source = glslifyBundle(tree)
-        source = JSON.stringify(source)
       } catch(e) {
         return sm.emit('error', err)
       }
 
-      stream.push(source)
-      stream.push(null)
+      // Finally, this applies our --post transforms
+      next()
+      function next() {
+        var tr = posts.shift()
+        if (!tr) return done()
+
+        var target = resolve.sync(tr.name, {
+          basedir: path.dirname(filename)
+        })
+
+        var transform = require(target)
+
+        transform(null, source, {
+          post: true
+        }, function(err, data) {
+          if (err) throw err
+          if (data) source = data
+          next()
+        })
+      }
+
+      function done() {
+        stream.push(JSON.stringify(source))
+        stream.push(null)
+      }
     })
 
     return stream

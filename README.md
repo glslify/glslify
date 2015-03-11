@@ -327,13 +327,13 @@ options like so:
 var glslify = require('glslify')
 
 glslify(__dirname + '/shader.glsl', {
-  globalTransform: ['global-transform'],
-  postTransform: ['post-transform'],
   transform: [
     ["glslify-hex", {
       "option-1": true,
       "option-2": 42
-    }]
+    }],
+    ["global-transform", { global: true }],
+    ["post-transform", { post: true }]
   ]
 })
 ```
