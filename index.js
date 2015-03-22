@@ -37,11 +37,16 @@ function transform(jsFilename) {
     opts = opts || {}
     opts.basedir = opts.basedir || path.dirname(jsFilename)
 
-    bundle(filename, opts, function(err, source) {
+    var depper = bundle(filename, opts, function(err, source) {
       if (err) return stream.emit('error', err)
 
       stream.push(JSON.stringify(source))
       stream.push(null)
+    })
+
+    //notify watchify that we have a new dependency
+    depper.on('file', function(file) {
+      sm.emit('file', file)
     })
 
     return stream
@@ -89,6 +94,8 @@ function bundle(filename, opts, done) {
 
     depper.add(filename, addedDep)
   }
+
+  return depper
 
   // Builds a dependency tree starting from the
   // given `filename` using glslify-deps.
