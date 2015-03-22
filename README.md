@@ -407,8 +407,8 @@ var glShader = require('gl-shader')
 var glslify  = require('glslify')
 
 var shader = glShader(gl,
-  glslify('./shader.frag'),
-  glslify('./shader.vert')
+  glslify('./shader.vert'),
+  glslify('./shader.frag')
 )
 ```
 
