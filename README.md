@@ -127,7 +127,16 @@ var src = glslify(`
 `, { inline: true })
 ```
 
+### [Webpack](http://webpack.github.io/) Loader
+
+You can use the
+[glslify-loader](https://github.com/stackgl/glslify-loader)
+module to bundle shaders through glslify with Webpack. Check out
+[the repository](https://github.com/stackgl/glslify-loader)
+for further information.
+
 ## Usage
+
 
 ### Installing a GLSL Module
 
