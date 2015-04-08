@@ -23,10 +23,16 @@ under the "Shader Components" category.
 Because glslify just outputs a single shader file as a string, it's easy to use
 it with any WebGL framework of your choosing,
 provided they accept custom shaders. Integration is planned for
-[three.js](http://threejs.org/), [webpack](http://webpack.github.io/) and
+[three.js](http://threejs.org/) and
 [pex](http://vorg.github.io/pex/), with more on the way!
 [Open an issue](https://github.com/stackgl/glslify/issues/new) here if you'd like to
 discuss integrating glslify with your platform of choice.
+
+*If you're interested in playing around with glslify, you should check out
+**[glslb.in](http://glslb.in/)**: it's a fragment shader sandbox similar to
+[Shadertoy](http://shadertoy.com/) and
+[GLSL Sandbox](http://glslsandbox.com/)
+with built in support for glslify.*
 
 ## Installation
 
