@@ -62,12 +62,17 @@ function bundle(filename, opts, done) {
 
   var base   = path.resolve(opts.basedir || defaultBase)
   var posts  = []
+  var files  = []
   var depper = glslifyDeps({
     cwd: base
   })
 
   // Extract and add our local transforms.
   var transforms = opts.transform || []
+
+  depper.on('file', function(file) {
+    files.push(file)
+  })
 
   transforms = Array.isArray(transforms) ? transforms : [transforms]
   transforms.forEach(function(transform) {
@@ -132,7 +137,10 @@ function bundle(filename, opts, done) {
     }
 
     function postDone() {
-      done(null, source)
+      done(null, source, opts.inline
+        ? files.slice(1)
+        : files
+      )
     }
   }
 }

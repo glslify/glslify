@@ -420,8 +420,11 @@ glslify's browserify transform.
 
 ### `glslify.bundle(file, opts, done)`
 
-Takes a `file` and calls `done(err, source)` with the finished shader
-when complete. Options include:
+Takes a `file` and calls `done(err, source, files)` with the finished shader
+when complete. `files` is an array of all the files required from the
+dependency tree, including the entry file.
+
+Options include:
 
 * `inline`: if set to true, you can pass the GLSL source directly in
   place of the `file` argument.
