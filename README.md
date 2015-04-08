@@ -29,7 +29,7 @@ provided they accept custom shaders. Integration is planned for
 discuss integrating glslify with your platform of choice.
 
 *If you're interested in playing around with glslify, you should check out
-**[glslb.in](http://glslb.in/)**: it's a fragment shader sandbox similar to
+*[glslb.in](http://glslb.in/)*: it's a fragment shader sandbox similar to
 [Shadertoy](http://shadertoy.com/) and
 [GLSL Sandbox](http://glslsandbox.com/)
 with built in support for glslify.*
