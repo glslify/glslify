@@ -38,7 +38,7 @@ function transform(jsFilename) {
     opts.basedir = opts.basedir || path.dirname(jsFilename)
 
     var depper = bundle(filename, opts, function(err, source) {
-      if (err) return stream.emit('error', err)
+      if (err) return sm.emit('error', err)
 
       stream.push(JSON.stringify(source))
       stream.push(null)
