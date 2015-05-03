@@ -162,3 +162,31 @@ test('browserify transform: inline', function(t) {
     })
   }
 })
+
+test('browserify transform: direct module require', function(t) {
+  browserify().add(from([
+    'var glslify = require("glslify")\n',
+
+    'console.log(glslify("glsl-fixture"))'
+  ]))
+    .transform(glslify)
+    .bundle()
+    .pipe(bl(bundled))
+
+  function bundled(err, bundle) {
+    if (err) return t.ifError(err)
+
+    t.plan(2)
+
+    vm.runInNewContext(bundle, {
+      console: {
+        log: function(source) {
+          t.ok(typeof source == 'string', 'collected string')
+          t.ok(source.indexOf('HELLO(WORLD)') !== -1, 'includes HELLO(WORLD)')
+        }
+      }
+    }, function(err) {
+      t.ifError(err, 'executed without errors')
+    })
+  }
+})
