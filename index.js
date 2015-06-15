@@ -7,10 +7,12 @@ var nodeResolve   = require('resolve')
 var path          = require('path')
 var fs            = require('fs')
 
+var undef
+
 module.exports = transform
 module.exports.bundle = bundle
 
-function transform(jsFilename) {
+function transform(jsFilename, apiOpts) {
   if (path.extname(jsFilename) === '.json') return through()
 
   // static-module is responsible for replacing any
@@ -35,6 +37,12 @@ function transform(jsFilename) {
     var stream = through()
 
     opts = opts || {}
+
+    for(var opt in apiOpts) {
+      if(apiOpts[opt] !== undef && opts[opt] === undef) {
+        opts[opt] = apiOpts[opt]
+      }
+    }
     opts.basedir = opts.basedir || path.dirname(jsFilename)
 
     var depper = bundle(filename, opts, function(err, source) {
