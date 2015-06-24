@@ -1,6 +1,6 @@
 {
   "name": "glslify",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A node.js-style module system for GLSL!",
   "main": "index.js",
   "bin": {
