@@ -23,7 +23,8 @@
     "minimist": "^1.1.0",
     "resolve": "^1.1.5",
     "static-module": "^1.1.2",
-    "through2": "^0.6.3"
+    "through2": "^0.6.3",
+    "xtend": "^4.0.0"
   },
   "devDependencies": {
     "browserify": "^8.1.3",

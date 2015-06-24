@@ -4,15 +4,14 @@ var glslifyDeps   = require('glslify-deps')
 var glslResolve   = require('glsl-resolve')
 var through       = require('through2')
 var nodeResolve   = require('resolve')
+var extend        = require('xtend')
 var path          = require('path')
 var fs            = require('fs')
-
-var undef
 
 module.exports = transform
 module.exports.bundle = bundle
 
-function transform(jsFilename, apiOpts) {
+function transform(jsFilename, browserifyOpts) {
   if (path.extname(jsFilename) === '.json') return through()
 
   // static-module is responsible for replacing any
@@ -36,14 +35,9 @@ function transform(jsFilename, apiOpts) {
   function streamBundle(filename, opts) {
     var stream = through()
 
-    opts = opts || {}
-
-    for(var opt in apiOpts) {
-      if(apiOpts[opt] !== undef && opts[opt] === undef) {
-        opts[opt] = apiOpts[opt]
-      }
-    }
-    opts.basedir = opts.basedir || path.dirname(jsFilename)
+    opts = extend({
+      basedir: path.dirname(jsFilename)
+    }, browserifyOpts || {}, opts || {})
 
     var depper = bundle(filename, opts, function(err, source) {
       if (err) return sm.emit('error', err)
