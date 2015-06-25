@@ -43,7 +43,7 @@ test('cli: globe.vert', function(t) {
   })
 })
 
-test('cli: globe.vert (inline)', function(t) {
+test.skip('cli: globe.vert (inline)', function(t) {
   var ps = spawn(glslify, [ '-t', 'glslify-hex' ])
 
   fs.createReadStream(path.join(__dirname, 'fixtures', 'globe.vert'))
