@@ -23,7 +23,7 @@ const argv   = minimist(process.argv.slice(2), {
 var input = ''
 if (argv.version) {
   const version = require('./package.json').version
-  process.stdout.write('v' + version)
+  process.stdout.write('v' + version + '\n')
   process.exit(0)
 }
 if (argv.help) return help()
