@@ -456,8 +456,8 @@ Options include:
 * [Art of Node](https://github.com/maxogden/art-of-node) by [@maxogden](http://github.com/maxogden).
 * [Browserify Handbook](https://github.com/substack/browserify-handbook) by [@substack](http://substack.net).
 * [WebGL Insights](http://www.amazon.com/WebGL-Insights-Patrick-Cozzi/dp/1498716075) includes a chapter introducing glslify in detail.
-* [Shader School](http://github.com/stackgl/shader-school)
-* [Book of Shaders](http://patriciogonzalezvivo.com/2015/thebookofshaders/)
+* [Shader School](http://github.com/stackgl/shader-school) by [@mikolalysenko](http://github.com/mikolalysenko), [chrisdickinson](http://github.com/chrisdickinson) and [@hughskennedy](http://github.com/hughskennedy).
+* [Book of Shaders](http://patriciogonzalezvivo.com/2015/thebookofshaders/) by [Patricio Gonzalez Vivo](http://patriciogonzalezvivo.com/).
 
 ## Contributing
 
