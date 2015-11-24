@@ -18,7 +18,7 @@
   "dependencies": {
     "bl": "^0.9.4",
     "glsl-resolve": "0.0.1",
-    "glslify-bundle": "^3.0.0",
+    "glslify-bundle": "^3.1.0",
     "glslify-deps": "^1.2.0",
     "minimist": "^1.1.0",
     "resolve": "^1.1.5",
