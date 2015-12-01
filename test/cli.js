@@ -8,7 +8,7 @@ const bl      = require('bl')
 const glslify = require.resolve('../bin')
 
 test('cli: globe.frag', function(t) {
-  exec(quote([ glslify,
+  exec('node '+quote([ glslify,
     path.join(__dirname, 'fixtures', 'globe.frag'),
     '-t', 'glslify-hex'
   ]), function(err, stdout, stderr) {
@@ -23,7 +23,7 @@ test('cli: globe.frag', function(t) {
 })
 
 test('cli: globe.vert', function(t) {
-  exec(quote([ glslify,
+  exec('node '+quote([ glslify,
     path.join(__dirname, 'fixtures', 'globe.vert'),
     '-t', 'glslify-hex'
   ]), function(err, stdout, stderr) {
