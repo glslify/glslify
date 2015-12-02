@@ -52,7 +52,7 @@
     "webgl"
   ],
   "browser": {
-    "index.js": "browser.js"
+    "index.js": "./browser.js"
   },
   "homepage": "https://github.com/stackgl/glslify",
   "bugs": {
