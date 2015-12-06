@@ -8,8 +8,8 @@ test('nested conflicts', function(t) {
   glslify.bundle(fixture, {}, function(err, src) {
     if (err) return t.fail(err.message || err)
 
-    var once  = /d(?:\_\d){2}/g.test(src)
-    var twice = /d(?:\_\d){4}/g.test(src)
+    var once  = /d(?:\_\d+)/g.test(src)
+    var twice = /d(?:\_\d+){2}/g.test(src)
 
     t.ok(once, 'nested value was renamed')
     t.ok(!twice, 'nested value was not renamed twice')
