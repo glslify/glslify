@@ -31,8 +31,8 @@ test('cli: globe.vert', function(t) {
 
     t.ok(stdout.indexOf('GLSL textureless classic 2D noise "cnoise"') !== -1, 'glsl-noise was included')
     t.ok(stdout.indexOf('#define PI') !== -1, 'glsl-fog was included')
-    t.ok(stdout.indexOf('cnoise(') === -1, 'cnoise was renamed')
-    t.ok(stdout.indexOf('backIn(') === -1, 'backIn was renamed')
+    t.ok(stdout.indexOf('cnoise(') !== -1, 'cnoise was not renamed')
+    t.ok(stdout.indexOf('backIn(') !== -1, 'backIn was not renamed')
     t.ok(stdout.indexOf('PI_') === -1, 'PI def was not renamed')
     t.ok(stdout.indexOf('#6ac9ff') === -1, '#6ac9ff was transformed way with glslify-hex')
     t.ok(stdout.indexOf('#8c9f96') === -1, '#8c9f96 was transformed way with glslify-hex')
