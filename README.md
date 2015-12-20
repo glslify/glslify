@@ -458,6 +458,19 @@ Options include:
 * [WebGL Insights](http://www.amazon.com/WebGL-Insights-Patrick-Cozzi/dp/1498716075) includes a chapter introducing glslify in detail.
 * [Shader School](http://github.com/stackgl/shader-school) by [@mikolalysenko](http://github.com/mikolalysenko), [chrisdickinson](http://github.com/chrisdickinson) and [@hughskennedy](http://github.com/hughskennedy).
 * [Book of Shaders](http://patriciogonzalezvivo.com/2015/thebookofshaders/) by [Patricio Gonzalez Vivo](http://patriciogonzalezvivo.com/).
+* [Pragmatic Physically Based Rendering](http://marcinignac.com/blog/pragmatic-pbr-setup-and-gamma/) by [@marcinignac](http://http://marcinignac.com/).
+* [glslifyでGLSLをモジュール化しよう](http://qiita.com/yuichiroharai/items/ecbfd2d7729c7384fb3a) by [@yuichiroharaiJP](http://www.yuichiroharai.com/).
+
+
+## glslify in the Wild
+
+* [KAMRA: Deja Vu](https://kamra.invisi-dir.com/)
+* [SMASHING Mega Scene](https://github.com/edankwan/SMASHING-Mega-Scene)
+* [Uber's deck.gl](https://github.com/uber-common/deck.gl)
+* [Glam](https://github.com/glamjs/glam)
+* [run.south.im](http://run.south.im/)
+* [glslb.in](http://glslb.in/)
+* [N|Solid](https://nodesource.com/products/nsolid)
 
 ## Contributing
 
