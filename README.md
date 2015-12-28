@@ -1,6 +1,5 @@
-# glslify
-
-[![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+# glslify [![stability][0]][1]
+[![npm version][2]][3] [![downloads][4]][5]
 
 A node.js-style module system for GLSL!
 
@@ -479,3 +478,10 @@ See [stackgl/contributing](https://github.com/stackgl/contributing) for details.
 ## License
 
 MIT. See [LICENSE.md](http://github.com/stackgl/glslify/blob/master/LICENSE.md) for details.
+
+[0]: https://img.shields.io/badge/stability-2%20stable-brightgreen.svg?style=flat-square
+[1]: https://nodejs.org/api/documentation.html#documentation_stability_index
+[2]: https://img.shields.io/npm/v/glslify.svg?style=flat-square
+[3]: https://npmjs.org/package/glslify
+[4]: http://img.shields.io/npm/dm/glslify.svg?style=flat-square
+[5]: https://npmjs.org/package/glslify
