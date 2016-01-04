@@ -14,6 +14,8 @@ module.exports.bundle = bundle
 function transform(jsFilename, browserifyOpts) {
   if (path.extname(jsFilename) === '.json') return through()
 
+  var streamHasErrored = false
+
   // static-module is responsible for replacing any
   // calls to glslify in your JavaScript with a string
   // of our choosing – in this case, our bundled glslify
@@ -34,6 +36,21 @@ function transform(jsFilename, browserifyOpts) {
 
   function streamBundle(filename, opts) {
     var stream = through()
+
+    if (typeof filename === 'object') {
+      if (streamHasErrored) return
+
+      streamHasErrored = true
+      setTimeout(function () {
+        return sm.emit('error', new Error(
+          'You supplied an object as glslify\'s first argument. As of ' +
+          'glslify@2.0.0, glslify expects a filename or shader: ' +
+          'see https://github.com/stackgl/glslify#migrating-from-glslify1-to-glslify2 for more information'
+        ))
+      })
+
+      return
+    }
 
     opts = extend({
       basedir: path.dirname(jsFilename)

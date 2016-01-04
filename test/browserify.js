@@ -190,3 +190,26 @@ test('browserify transform: direct module require', function(t) {
     })
   }
 })
+
+test('browserify transform: report error on recieving an object', function(t) {
+  t.plan(2)
+
+  browserify().add(from([
+    'var glslify = require("glslify")\n',
+    'console.log(glslify({',
+      'vert: "./fixtures/simple-export",',
+      'frag: "./fixtures/simple-export"',
+    '}))\n',
+    'console.log(glslify({',
+      'vert: "./fixtures/simple-export",',
+      'frag: "./fixtures/simple-export"',
+    '}))'
+  ]))
+    .transform(glslify)
+    .bundle()
+    .on('error', function (err) {
+      t.ok(err, 'error reported')
+      t.ok(err.message.indexOf('glslify@2.0.0') !== -1, 'error message is a notice regarding old glslify API')
+    })
+    .resume()
+})
