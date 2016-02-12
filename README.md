@@ -302,6 +302,50 @@ struct Light {
 #pragma glslify: export(Light)
 ```
 
+### Passing references between modules
+Normally, glslify renames tokens to avoid conflicts across contexts.  Sometimes, however, you want to reference the same thing from different contexts.  The `require` function lets you explicitly fix reference names in order to guarantee that two different modules are talking about the same reference.
+
+Give `some-module` access to locally declared `bar` whenever it looks for `foo` internally:
+``` glsl
+int bar;
+#pragma require('some-module',foo=bar,...)
+```
+It's important to make sure that `bar` has already been declared when you invoke `#pragma require(...)`.
+
+Now time for some imagination.  Let's pretend that we have some `float[500]` arrays that we'd like to be summed up.
+
+Here's a module that performs a reduction using a function `map`.
+``` glsl
+float accumulate(float list[N]) {
+  float z = 0;
+  for (int i = 0; i<N; i++) {
+    z = map(z,list[i]);
+  }
+  return z;
+}
+#pragma glslify: export(accumulate)
+```
+But notice that this module doesn't actually declare `const int N;` or define a function `map` anywhere.  We have to make sure they are already defined when we require the module, and pass their names along with the `require` function:
+
+``` glsl
+const int M = 500;
+float add(float a, float b){ return a+b; }
+
+#pragma sum500 = require('./accumulator.glsl',N=M,map=add)
+```
+The accumulator has been imported and glslified into a `sum` function.  We can also multiply all of the floats in some `float[17]` arrays the same way:
+``` glsl
+const int M = 500;
+const int L = 17;
+float add(float a, float b){ return a+b; }
+float mul(float a, float b){ return a*b; }
+
+#pragma sum500 = require('./accumulator.glsl',N=M,map=add)
+#pragma product17 = require('./accumulator.glsl',N=L,map=mul)
+```
+
+[Glsl-hash-blur](http://stack.gl/packages/#stackgl/glsl-hash-blur) is an example of a module that uses this feature.
+
 ## Source Transforms
 
 Source transforms are a feature inspired by browserify, allowing you to
