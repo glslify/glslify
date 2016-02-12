@@ -325,7 +325,7 @@ float accumulate(float list[N]) {
 }
 #pragma glslify: export(accumulate)
 ```
-But looking closely, we've noticed that this module doesn't actually supply the integer `N` or the function `map`.  We have to make sure they are already defined when we require the module, and pass their names along with the `require` function:
+But notice that this module doesn't actually declare `const int N;` or define a function `map` anywhere.  We have to make sure they are already defined when we require the module, and pass their names along with the `require` function:
 
 ``` glsl
 const int M = 500;
