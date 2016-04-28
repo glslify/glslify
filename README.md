@@ -140,6 +140,10 @@ module to bundle shaders through glslify with Webpack. Check out
 [the repository](https://github.com/stackgl/glslify-loader)
 for further information.
 
+### [Babel](https://babeljs.io) Plugin
+
+You can use [glslify-babel](https://github.com/stackgl/glslify-babel) as a Babel plugin.  This allows you to use all ES6 features with glslify, including `import` statements and tagged template strings.  Check out [the repository](https://github.com/stackgl/glslify-babel) to learn more.
+
 ## Usage
 
 
