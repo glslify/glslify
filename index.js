@@ -29,7 +29,8 @@ function transform(jsFilename, browserifyOpts) {
       require: {
         resolve: nodeResolve
       }
-    }
+    },
+    varModules: { path: path }
   })
 
   return sm
