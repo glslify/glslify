@@ -33,7 +33,6 @@
     "glsl-noise": "0.0.0",
     "glslify-hex": "^2.0.1",
     "shell-quote": "^1.4.3",
-    "slash": "^1.0.0",
     "tap-spec": "^2.2.1",
     "tape": "^3.5.0",
     "uniq": "^1.0.1"

@@ -1,12 +1,11 @@
 const exec    = require('child_process').exec
 const spawn   = require('child_process').spawn
 const quote   = require('shell-quote').quote
-const slash   = require('slash')
 const test    = require('tape')
 const path    = require('path')
 const fs      = require('fs')
 const bl      = require('bl')
-const glslify = slash(require.resolve('../bin'))
+const glslify = require.resolve('../bin')
 
 test('cli: globe.frag', function(t) {
   exec('node '+quote([ glslify,
