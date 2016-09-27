@@ -5,15 +5,15 @@ const glslDeps   = require('glslify-deps')
 const browserify = require('browserify')
 const from       = require('from2')
 const test       = require('tape')
-const glslify    = require('../')
+const glslify    = require('../transform')
 const vm         = require('vm')
 const bl         = require('bl')
 const fs         = require('fs')
 
 test('browserify transform: simple example', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
-    'console.log(glslify("./fixtures/simplest.glsl"))'
+    'var glslify = require("glslify")(__dirname)\n',
+    'console.log(glslify.file("./fixtures/simplest.glsl"))'
   ]))
     .transform(glslify)
     .bundle()

@@ -39,7 +39,7 @@ module.exports = function(opts) {
     var deps = depper.inline(src, xopts.basedir || base)
     return bundle(deps)
   }
-  gl.load = function(file) {
+  gl.file = function(file) {
     var deps = depper.add(file)
     return bundle(deps)
   }
