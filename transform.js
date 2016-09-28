@@ -71,6 +71,10 @@ module.exports = function (file, opts) {
           // case: require('glslify').compile(...)
           pending++
           rcallcompile(pp, done)
+        } else if (p.type === 'TaggedTemplateExpression') {
+          // case: require('glslify')`...`
+          pending++
+          tagexpr(p, done)
         }
       } else if (node.type === 'Identifier' && node.name === glvar
       && node.parent.type === 'CallExpression') {
@@ -79,7 +83,7 @@ module.exports = function (file, opts) {
         callexpr(node.parent, done)
       } else if (node.type === 'TaggedTemplateExpression'
       && node.tag.name === glvar) {
-        // case: glvar``
+        // case: glvar`...`
         pending++
         tagexpr(node, done)
       } else if (node.type === 'Identifier' && node.name === glvar
@@ -108,7 +112,7 @@ module.exports = function (file, opts) {
         if (err) return d.emit('error', err)
         try { var bsrc = bundle(deps) }
         catch (err) { return d.emit('error', err) }
-        node.update(glvar + '('
+        node.update(node.tag.source() + '('
           + JSON.stringify(bsrc.split('__GLX_PLACEHOLDER__'))
           + [''].concat(q.expressions.map(function (e) {
             return e.source()
