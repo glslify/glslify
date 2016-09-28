@@ -33,6 +33,34 @@ discuss integrating glslify with your platform of choice.
 [GLSL Sandbox](http://glslsandbox.com/)
 with built in support for glslify.*
 
+## Module API
+
+``` javascript
+var glslify = require('glslify')
+```
+
+### `var glx = glslify(__dirname)`
+
+### var src = `glx\`shader source...\``
+
+Compile a shader with a tagged template string function.
+
+### var src = glx.compile(src, opts)
+
+Compile a shader string.
+
+* `opts.basedir` - directory to resolve relative paths in `src`
+* `opts.transform` - an array of transform functions, transform module name
+strings, or `[trname,tropts]` pairs
+
+### var src = glx.file(filename, opts)
+
+Compile a shader from a filename.
+
+* `opts.basedir` - directory to resolve relative paths in `src`
+* `opts.transform` - an array of transform functions, transform module name
+strings, or `[trname,tropts]` pairs
+
 ## Installation
 
 [![NPM](https://nodei.co/npm/glslify.png)](https://nodei.co/npm/glslify/)
@@ -74,7 +102,7 @@ If using browserify from the command-line, simply pass glslify
 in as a transform using the `-t`/`--transform` flag:
 
 ``` bash
-browserify -t glslify index.js -o bundle.js
+browserify -t glslify/transform index.js -o bundle.js
 ```
 
 Alternatively, you may include glslify as a `browserify.transform`
@@ -87,7 +115,7 @@ in your `package.json` file:
     "glslify": "^2.0.0"
   },
   "browserify": {
-    "transform": ["glslify"]
+    "transform": ["glslify/transform"]
   }
 }
 ```
@@ -97,11 +125,26 @@ glslify like so:
 
 ``` javascript
 // index.js
-var glslify = require('glslify')
+var glx = require('glslify')(__dirname)
 
-var src = glslify(__dirname + '/shader.glsl')
+var src = glx.file(__dirname + '/shader.glsl')
 
 console.log(src)
+```
+
+or using tagged template strings:
+
+``` javascript
+var glx = require('glslify')(__dirname)
+console.log(glx`
+  #pragma glslify: noise = require('glsl-noise/simplex/3d')
+
+  precision mediump float;
+  varying vec3 vpos;
+  void main () {
+    gl_FragColor = vec4(noise(vpos*25.0),1);
+  }
+`)
 ```
 
 Your glslify calls will be replaced with bundled GLSL strings
@@ -112,24 +155,6 @@ at build time automatically for you!
 var src = "#define GLSLIFY 1\n\nprecision mediump float; ..."
 
 console.log(src)
-```
-
-### Inline mode
-
-By passing the `inline` option as true, you can write your
-shader inline instead of requiring it to be in a separate
-file:
-
-``` javascript
-var glslify = require('glslify')
-
-var src = glslify(`
-  precision mediump float;
-
-  void main() {
-    gl_FragColor = vec4(1.0);
-  }
-`, { inline: true })
 ```
 
 ### [Webpack](http://webpack.github.io/) Loader
@@ -431,7 +456,7 @@ options like so:
 ``` javascript
 var glslify = require('glslify')
 
-glslify(__dirname + '/shader.glsl', {
+glslify.file(__dirname + '/shader.glsl', {
   transform: [
     ["glslify-hex", {
       "option-1": true,
@@ -469,31 +494,10 @@ var glShader = require('gl-shader')
 var glslify  = require('glslify')
 
 var shader = glShader(gl,
-  glslify('./shader.vert'),
-  glslify('./shader.frag')
+  glslify.file('./shader.vert'),
+  glslify.file('./shader.frag')
 )
 ```
-
-## Module API
-
-You can use glslify from Node using `glslify.bundle`. The operation is
-performed asynchronously, but otherwise it shares the same API as
-glslify's browserify transform.
-
-### `glslify.bundle(file, opts, done)`
-
-Takes a `file` and calls `done(err, source, files)` with the finished shader
-when complete. `files` is an array of all the files required from the
-dependency tree, including the entry file.
-
-Options include:
-
-* `inline`: if set to true, you can pass the GLSL source directly in
-  place of the `file` argument.
-* `transform`: an array of transforms to apply to the shader.
-* `basedir`: the directory from which to resolve modules from in your
-  first shader. Defaults to the first file's directory, or `process.cwd()`
-  if inline mode is enabled.
 
 ## Further Reading
 
