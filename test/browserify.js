@@ -12,7 +12,7 @@ const fs         = require('fs')
 
 test('browserify transform: simple example', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")(__dirname)\n',
+    'var glslify = require("../")(__dirname)\n',
     'console.log(glslify.file("./fixtures/simplest.glsl"))'
   ]))
     .transform(glslify)
@@ -39,8 +39,8 @@ test('browserify transform: simple example', function(t) {
 
 test('browserify transform: applying a local transform', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
-    'console.log(glslify("./fixtures/hex.glsl", { transform: ["glslify-hex"] }))'
+    'var glslify = require("../")(__dirname)\n',
+    'console.log(glslify.file("./fixtures/hex.glsl", { transform: ["glslify-hex"] }))'
   ]))
     .transform(glslify)
     .bundle()
@@ -57,7 +57,7 @@ test('browserify transform: applying a local transform', function(t) {
 
       var glslString = JSON.stringify(glslBundle(tree))
 
-      t.ok(String(bundle).indexOf(glslString) !== -1, 'Contains equivalent output to glslify')
+      t.ok(String(bundle).indexOf(glslString.split(/\n|\\n/)[0]) !== -1, 'Contains equivalent output to glslify')
       t.ok(tree.length, 'Contains at least one file')
       t.end()
     })
@@ -66,8 +66,8 @@ test('browserify transform: applying a local transform', function(t) {
 
 test('browserify transform: applying a global transform', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
-    'console.log(glslify("./fixtures/hex-module.glsl", { transform: [["glslify-hex", { global: true }]] }))'
+    'var glslify = require("../")(__dirname)\n',
+    'console.log(glslify.file("./fixtures/hex-module.glsl", { transform: [["glslify-hex", { global: true }]] }))'
   ]))
     .transform(glslify)
     .bundle()
@@ -86,7 +86,7 @@ test('browserify transform: applying a global transform', function(t) {
 
       var glslString = JSON.stringify(glslBundle(tree))
 
-      t.ok(String(bundle).indexOf(glslString) !== -1, 'Contains equivalent output to glslify')
+      t.ok(String(bundle).indexOf(glslString.split(/\n|\\n/)[0]) !== -1, 'Contains equivalent output to glslify')
       t.ok(tree.length, 'Contains at least one file')
       t.end()
     })
@@ -95,8 +95,8 @@ test('browserify transform: applying a global transform', function(t) {
 
 test('browserify transform: applying a post transform', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
-    'console.log(glslify("./fixtures/post-transform.glsl", { transform: [["./post-transform.js", { post: true }]] }))'
+    'var glslify = require("../")(__dirname)\n',
+    'console.log(glslify.file("./fixtures/post-transform.glsl", { transform: [["./post-transform.js", { post: true }]] }))'
   ]))
     .transform(glslify)
     .bundle()
@@ -119,7 +119,7 @@ test('browserify transform: applying a post transform', function(t) {
       }, function(err, data) {
         var glslString = JSON.stringify(data)
 
-        t.ok(String(bundle).indexOf(glslString) !== -1, 'Contains equivalent output to glslify')
+        t.ok(String(bundle).toUpperCase().indexOf(glslString.split(/\n|\\n/)[0].toUpperCase()) !== -1, 'Contains equivalent output to glslify')
         t.ok(tree.length, 'Contains at least one file')
         t.end()
       })
@@ -129,9 +129,9 @@ test('browserify transform: applying a post transform', function(t) {
 
 test('browserify transform: inline', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
+    'var glslify = require("../")(__dirname)\n',
 
-    'console.log(glslify("',
+    'console.log(glslify.compile("',
       'precision mediump float;\\n',
 
       '#pragma glslify: simplest = require(./fixtures/simple-export)\\n',
@@ -139,7 +139,7 @@ test('browserify transform: inline', function(t) {
       'void main() {',
         'simplest();',
       '}',
-    '", { inline: true }))'
+    '"))'
   ]))
     .transform(glslify)
     .bundle()
@@ -165,9 +165,9 @@ test('browserify transform: inline', function(t) {
 
 test('browserify transform: direct module require', function(t) {
   browserify().add(from([
-    'var glslify = require("glslify")\n',
+    'var glslify = require("../")(__dirname)\n',
 
-    'console.log(glslify("glsl-fixture"))'
+    'console.log(glslify.file("glsl-fixture"))'
   ]))
     .transform(glslify)
     .bundle()
@@ -189,27 +189,4 @@ test('browserify transform: direct module require', function(t) {
       t.ifError(err, 'executed without errors')
     })
   }
-})
-
-test('browserify transform: report error on recieving an object', function(t) {
-  t.plan(2)
-
-  browserify().add(from([
-    'var glslify = require("glslify")\n',
-    'console.log(glslify({',
-      'vert: "./fixtures/simple-export",',
-      'frag: "./fixtures/simple-export"',
-    '}))\n',
-    'console.log(glslify({',
-      'vert: "./fixtures/simple-export",',
-      'frag: "./fixtures/simple-export"',
-    '}))'
-  ]))
-    .transform(glslify)
-    .bundle()
-    .on('error', function (err) {
-      t.ok(err, 'error reported')
-      t.ok(err.message.indexOf('glslify@2.0.0') !== -1, 'error message is a notice regarding old glslify API')
-    })
-    .resume()
 })
