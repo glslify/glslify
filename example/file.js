@@ -1,2 +1,2 @@
-var glx = require('../')(__dirname)
+var glx = require('../')
 console.log(glx.file('./frag.glsl'))

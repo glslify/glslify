@@ -27,7 +27,7 @@
     "minimist": "^1.2.0",
     "resolve": "^1.1.5",
     "stack-trace": "0.0.9",
-    "static-eval": "^0.2.4",
+    "static-eval": "^1.1.1",
     "static-module": "^1.1.2",
     "through2": "^0.6.5",
     "xtend": "^4.0.0"

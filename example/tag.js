@@ -1,4 +1,4 @@
-var glx = require('../')(__dirname)
+var glx = require('../')
 console.log(glx`
   #pragma glslify: noise = require('glsl-noise/simplex/3d')
 

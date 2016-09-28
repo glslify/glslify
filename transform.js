@@ -19,7 +19,7 @@ module.exports = function (file, opts) {
   if (!opts) opts = {}
   var posts = []
   var dir = path.dirname(file)
-  var glvar = null, tagname = null, mdir = dir
+  var glvar = null, mdir = dir
   var evars = {
     __dirname: dir,
     __filename: file,
@@ -45,8 +45,7 @@ module.exports = function (file, opts) {
       && node.parent.arguments[0].value === 'path'
       && node.parent.parent.type === 'VariableDeclarator') {
         evars.path = path
-      }
-      if (node.type === 'Identifier' && node.name === 'require'
+      } else if (node.type === 'Identifier' && node.name === 'require'
       && node.parent.type === 'CallExpression'
       && node.parent.arguments[0]
       && node.parent.arguments[0].type === 'Literal'
@@ -55,95 +54,143 @@ module.exports = function (file, opts) {
       || path.resolve(dir,node.parent.arguments[0].value) === glslfile0
       || path.resolve(dir,node.parent.arguments[0].value) === glslfile1)) {
         var p = node.parent.parent, pp = p.parent
-        if (p.type === 'CallExpression'
-        && pp.type === 'VariableDeclarator') {
-          // case: var glx = require('glslify')(__dirname)
-          tagname = pp.id.name
-          var arg = p.arguments[0]
-          if (arg && arg.type === 'Literal') mdir = arg.value
-        } else if (node.parent.parent.type === 'VariableDeclarator') {
+        if (p.type === 'CallExpression' && pp.type === 'CallExpression') {
+          // case: require('glslify')(...)
+          pending++
+          callexpr(p, done)
+        } else if (p.type === 'VariableDeclarator') {
           // case: var glvar = require('glslify')
-          glvar = node.parent.parent.id.name
+          glvar = p.id.name
+        } else if (p.type === 'MemberExpression' && p.property.name === 'file'
+        && pp.type === 'CallExpression') {
+          // case: require('glslify').file(...)
+          pending++
+          rcallfile(pp, done)
+        } else if (p.type === 'MemberExpression' && p.property.name === 'compile'
+        && pp.type === 'CallExpression') {
+          // case: require('glslify').compile(...)
+          pending++
+          rcallcompile(pp, done)
         }
-      }
-      if (node.type === 'Identifier' && node.name === glvar
-      && node.parent.type === 'CallExpression'
-      && node.parent.parent.type === 'VariableDeclarator') {
-        // case: var glx = glvar(__dirname)
-        var p = node.parent, pp = p.parent
-        tagname = pp.id.name
-        var arg = p.arguments[0]
-        if (arg && arg.type === 'Literal') {
-          mdir = arg.value
-        } else if (arg.type === 'ObjectExpression') {
-          arg.properties.forEach(function (prop) {
-            if (prop.key.name === 'basedir') {
-              mdir = evaluate(prop.value) || mdir
-            }
-          })
-        }
-      }
-      if (node.type === 'TaggedTemplateExpression' && node.tag.name === tagname) {
+      } else if (node.type === 'Identifier' && node.name === glvar
+      && node.parent.type === 'CallExpression') {
+        // case: glvar(...)
         pending++
-        var q = node.quasi
-        var shadersrc = q.quasis.map(function (s) {
-          return s.value.raw + '__GLX_PLACEHOLDER__'
-        }).join('')
-        var d = createDeps(extend({ cwd: mdir }, mopts))
-        d.inline(shadersrc, mdir, function (err, deps) {
-          if (err) return d.emit('error', err)
-          try { var bsrc = bundle(deps) }
-          catch (err) { return d.emit('error', err) }
-          node.update(tagname + '('
-            + JSON.stringify(bsrc.split('__GLX_PLACEHOLDER__'))
-            + [''].concat(q.expressions.map(function (e) {
-              return e.source()
-            })).join(',')
-            + ')')
-          done()
-        })
-      } else if (node.type === 'Identifier' && node.name === tagname
+        callexpr(node.parent, done)
+      } else if (node.type === 'TaggedTemplateExpression'
+      && node.tag.name === glvar) {
+        // case: glvar``
+        pending++
+        tagexpr(node, done)
+      } else if (node.type === 'Identifier' && node.name === glvar
       && node.parent.type === 'MemberExpression'
       && node.parent.property.name === 'file'
       && node.parent.parent.type === 'CallExpression'
       && node.parent.parent.arguments[0]) {
         pending++
-        var mfile = node.parent.parent.arguments[0].value
-        var mopts = node.parent.parent.arguments[1]
-          && evaluate(node.parent.parent.arguments[1])
-        var ondeps = function (err, deps) {
-          if (err) return d.emit('error', err)
-          try { var bsrc = bundle(deps) }
-          catch (err) { return d.emit('error', err) }
-          node.parent.parent.update(tagname + '([' + JSON.stringify(bsrc) + '])')
-          done()
-        }
-        var d = createDeps({ cwd: mdir })
-        if (/^[.\/]/.test(mfile)) {
-          d.add(mfile, ondeps)
-        } else {
-          gresolve(mfile, { basedir: mdir }, function (err, res) {
-            if (err) return d.emit('error', err)
-            d.add(res, ondeps)
-          })
-        }
-      } else if (node.type === 'Identifier' && node.name === tagname
+        callfile(node.parent.parent, done)
+      } else if (node.type === 'Identifier' && node.name === glvar
       && node.parent.type === 'MemberExpression'
       && node.parent.property.name === 'compile'
       && node.parent.parent.type === 'CallExpression'
       && node.parent.parent.arguments[0]) {
         pending++
-        var msrc = node.parent.parent.arguments[0].value
-        var mopts = node.parent.parent.arguments[1]
-          && evaluate(node.parent.parent.arguments[1])
-        var d = createDeps({ cwd: mdir })
-        d.inline(msrc, mdir, function (err, deps) {
-          if (err) return d.emit('error', err)
-          try { var bsrc = bundle(deps) }
-          catch (err) { return d.emit('error', err) }
-          node.parent.parent.update(tagname + '([' + JSON.stringify(bsrc) + '])')
-          done()
-        })
+        callcompile(node.parent.parent, done)
+      }
+    }
+    function tagexpr (node, cb) {
+      var q = node.quasi
+      var shadersrc = q.quasis.map(function (s) {
+        return s.value.raw + '__GLX_PLACEHOLDER__'
+      }).join('')
+      var d = createDeps({ cwd: mdir })
+      d.inline(shadersrc, mdir, function (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        node.update(glvar + '('
+          + JSON.stringify(bsrc.split('__GLX_PLACEHOLDER__'))
+          + [''].concat(q.expressions.map(function (e) {
+            return e.source()
+          })).join(',')
+          + ')')
+        cb()
+      })
+    }
+    function callexpr (p, cb) {
+      var marg = evaluate(p.arguments[0])
+      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+      var d = createDeps(extend({ cwd: mdir }, mopts))
+      if (/\n/.test(marg)) { // source string
+        d.inline(marg, mdir, ondeps)
+      } else gresolve(marg, { basedir: mdir }, function (err, res) {
+        if (err) d.emit('error', err)
+        else d.add(res, ondeps)
+      })
+      function ondeps (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        p.update(p.callee.source()+'(['+JSON.stringify(bsrc)+'])')
+        cb()
+      }
+    }
+    function callcompile (p, cb) {
+      var mfile = p.arguments[0].value
+      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+      var d = createDeps({ cwd: mdir })
+      d.inline(mfile, mdir, ondeps)
+      function ondeps (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
+        cb()
+      }
+    }
+    function callfile (p, cb) {
+      var mfile = p.arguments[0].value
+      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+      var d = createDeps({ cwd: mdir })
+      gresolve(mfile, { basedir: mdir }, function (err, res) {
+        if (err) return d.emit('error', err)
+        d.add(res, ondeps)
+      })
+      function ondeps (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
+        cb()
+      }
+    }
+    function rcallfile (p, cb) {
+      var mfile = evaluate(p.arguments[0])
+      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+      var d = createDeps({ cwd: mdir })
+      gresolve(mfile, { basedir: mdir }, function (err, res) {
+        if (err) return d.emit('error', err)
+        d.add(res, ondeps)
+      })
+      function ondeps (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        p.update(p.callee.object.source()+'(['+JSON.stringify(bsrc)+'])')
+        cb()
+      }
+    }
+    function rcallcompile (p, cb) {
+      var marg = evaluate(p.arguments[0])
+      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+      var d = createDeps({ cwd: mdir })
+      d.inline(marg, mdir, ondeps)
+      function ondeps (err, deps) {
+        if (err) return d.emit('error', err)
+        try { var bsrc = bundle(deps) }
+        catch (err) { return d.emit('error', err) }
+        p.update(p.callee.object.source()+'(['+JSON.stringify(bsrc)+'])')
+        cb()
       }
     }
     function done () {

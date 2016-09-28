@@ -1,16 +1,36 @@
 var glslifyBundle = require('glslify-bundle')
 var glslifyDeps   = require('glslify-deps/sync')
-var glslResolve   = require('glsl-resolve')
 var nodeResolve   = require('resolve')
 var path          = require('path')
 var extend        = require('xtend')
+var stackTrace    = require('stack-trace')
 
-module.exports = function(opts) {
-  if (typeof opts === 'string') opts = { basedir: opts }
-  if (!opts) opts = {}
+module.exports = function(arg, opts) {
+  if (Array.isArray(arg)) { // template string
+    return iface().tag.apply(null, arguments)
+  } else if (typeof arg === 'string' && !/\n/.test(arg) && opts && opts._flags) {
+    // browserify transform
+    return require('./transform.js').apply(this, arguments)
+  } else if (typeof arg === 'string' && /\n/.test(arg)) { // source string
+    return iface().compile(arg, opts)
+  } else if (typeof arg === 'string') { // source file
+    return iface().file(arg, opts)
+  } else throw new Error('unhandled argument type: ' + typeof arg)
+}
+module.exports.compile = function(src, opts) {
+  return iface().compile(src, opts)
+}
+module.exports.file = function(file, opts) {
+  return iface().file(file, opts)
+}
 
+function iface () {
+  try { var basedir = path.dirname(stackTrace.get()[2].getFileName()) }
+  catch (err) { basedir = process.cwd() }
   var posts = []
-  var gl = function(strings) {
+  return { tag: tag, compile: compile, file: file }
+
+  function tag(strings) {
     if (typeof strings === 'string') strings = [strings]
     var exprs = [].slice.call(arguments, 1)
     var parts = []
@@ -18,25 +38,23 @@ module.exports = function(opts) {
       parts.push(strings[i], exprs[i] || '')
     }
     parts.push(strings[i])
-    return gl.compile(parts.join(''))
+    return compile(parts.join(''))
   }
-  gl.compile = function(src, xopts) {
-    if (!xopts) xopts = {}
-    var depper = gdeps(extend(opts, xopts))
-    var base = xopts.basedir || opts.basedir || process.cwd()
-    var deps = depper.inline(src, base)
+  function compile(src, opts) {
+    if (!opts) opts = {}
+    var depper = gdeps(opts)
+    var deps = depper.inline(src, opts.basedir || basedir)
     return bundle(deps)
   }
-  gl.file = function(file, xopts) {
-    var depper = gdeps(extend(opts, xopts))
-    var deps = depper.add(file)
+  function file(filename, opts) {
+    if (!opts) opts = {}
+    var depper = gdeps(opts)
+    var deps = depper.add(path.resolve(opts.basedir || basedir, filename))
     return bundle(deps)
   }
-  return gl
-
   function gdeps (opts) {
-    var base = opts.basedir || process.cwd()
-    var depper = glslifyDeps({ cwd: base })
+    if (!opts) opts = {}
+    var depper = glslifyDeps({ cwd: opts.basedir || basedir })
     var transforms = opts.transform || []
     transforms = Array.isArray(transforms) ? transforms : [transforms]
     transforms.forEach(function(transform) {
@@ -54,9 +72,7 @@ module.exports = function(opts) {
   function bundle (deps) {
     var source = glslifyBundle(deps)
     posts.forEach(function (tr) {
-      var target = nodeResolve.sync(tr.name, {
-        basedir: base
-      })
+      var target = nodeResolve.sync(tr.name, { basedir: basedir })
       var transform = require(target)
       var src = transform(null, source, { post: true })
       if (src) source = src
