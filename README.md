@@ -3,12 +3,17 @@
 
 A node.js-style module system for GLSL!
 
-This module contains glslify's command-line interface (CLI) and
-[browserify](http://browserify.org/) transform. It forms one of the core
-components of the [stack.gl](http://stack.gl/) ecosystem, allowing you to
-install GLSL modules from [npm](http://npmjs.com) and use them in your
-shaders. This makes it trivial to piece together different effects and
-techniques from the community, including but certainly not limited to
+This module contains:
+
+* glslify's command-line interface (CLI)
+* glslify node/electron interface
+* [browserify](http://browserify.org/) transform
+
+It forms one of the core components of the [stack.gl](http://stack.gl/)
+ecosystem, allowing you to install GLSL modules from [npm](http://npmjs.com) and
+use them in your shaders. This makes it trivial to piece together different
+effects and techniques from the community, including but certainly not limited
+to
 [fog](https://github.com/hughsk/glsl-fog),
 [noise](https://github.com/hughsk/glsl-noise),
 [film grain](https://github.com/mattdesl/glsl-film-grain),
@@ -33,29 +38,57 @@ discuss integrating glslify with your platform of choice.
 [GLSL Sandbox](http://glslsandbox.com/)
 with built in support for glslify.*
 
+## Example
+
+``` javascript
+var glsl = require('glslify')
+console.log(glsl`
+  #pragma glslify: noise = require('glsl-noise/simplex/3d')
+
+  precision mediump float;
+  varying vec3 vpos;
+  void main () {
+    gl_FragColor = vec4(noise(vpos*25.0),1);
+  }
+`)
+```
+
 ## Module API
 
 ``` javascript
-var glslify = require('glslify')
+var glsl = require('glslify')
 ```
 
-### `var glx = glslify(__dirname)`
+### var src = `glsl\`shader source...\``
 
-### var src = `glx\`shader source...\``
+Compile a shader inline using `glsl` as a
+[tagged template string function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals).
 
-Compile a shader with a tagged template string function.
+### var src = glsl(file, opts)
+### var src = glsl(shaderSource, opts)
 
-### var src = glx.compile(src, opts)
+Compile a shader using an inline shader string or a file name.
 
-Compile a shader string.
+These are convencience methods provided that call `glsl.compile()` or
+`glsl.file()` accordingly. These methods are also provided for backwards
+compatibility with the previous `< 6` interface.
+
+Optionally provide:
+
+* `opts.basedir` - directory to resolve relative paths
+* `opts.transform` - an array of transform functions, transform module name
+
+### var src = glsl.compile(src, opts)
+
+Compile a shader string from a string `src`.
 
 * `opts.basedir` - directory to resolve relative paths in `src`
 * `opts.transform` - an array of transform functions, transform module name
 strings, or `[trname,tropts]` pairs
 
-### var src = glx.file(filename, opts)
+### var src = glsl.file(filename, opts)
 
-Compile a shader from a filename.
+Compile a shader from a `filename`.
 
 * `opts.basedir` - directory to resolve relative paths in `src`
 * `opts.transform` - an array of transform functions, transform module name
@@ -102,7 +135,7 @@ If using browserify from the command-line, simply pass glslify
 in as a transform using the `-t`/`--transform` flag:
 
 ``` bash
-browserify -t glslify/transform index.js -o bundle.js
+browserify -t glslify index.js -o bundle.js
 ```
 
 Alternatively, you may include glslify as a `browserify.transform`
@@ -115,28 +148,27 @@ in your `package.json` file:
     "glslify": "^2.0.0"
   },
   "browserify": {
-    "transform": ["glslify/transform"]
+    "transform": ["glslify"]
   }
 }
 ```
 
 When writing your app, you should be able to require and call
-glslify like so:
+glslify the same as the node/electron interface, like so:
 
 ``` javascript
 // index.js
-var glx = require('glslify')(__dirname)
+var glsl = require('glslify')
 
-var src = glx.file(__dirname + '/shader.glsl')
-
+var src = glsl.file('./shader.glsl')
 console.log(src)
 ```
 
 or using tagged template strings:
 
 ``` javascript
-var glx = require('glslify')(__dirname)
-console.log(glx`
+var glsl = require('glslify')
+console.log(glsl`
   #pragma glslify: noise = require('glsl-noise/simplex/3d')
 
   precision mediump float;
@@ -466,37 +498,6 @@ glslify.file(__dirname + '/shader.glsl', {
     ["post-transform", { post: true }]
   ]
 })
-```
-
-## Migrating from glslify@1 to glslify@2
-
-There are two important changes to note:
-
-* [gl-shader](http://github.com/stackgl/gl-shader) is no longer bundled in with
-  glslify's browserify transform.
-* glslify now accepts files individually, rather than frag/vert pairings.
-
-The following:
-
-``` javascript
-var glslify = require('glslify')
-
-var shader = glslify({
-  frag: './shader.frag',
-  vert: './shader.vert'
-})(gl)
-```
-
-Should now be created like so:
-
-``` javascript
-var glShader = require('gl-shader')
-var glslify  = require('glslify')
-
-var shader = glShader(gl,
-  glslify.file('./shader.vert'),
-  glslify.file('./shader.frag')
-)
 ```
 
 ## Further Reading
