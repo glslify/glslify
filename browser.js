@@ -1,7 +1,10 @@
-module.exports = function() {
-  throw new Error(
-      "It appears that you're using glslify in browserify without "
-    + "its transform applied. Make sure that you've set up glslify as a source transform: "
-    + "https://github.com/substack/node-browserify#browserifytransform"
-  )
+module.exports = function(strings) {
+  if (typeof strings === 'string') strings = [strings]
+  var exprs = [].slice.call(arguments,1)
+  var parts = []
+  for (var i = 0; i < strings.length-1; i++) {
+    parts.push(strings[i], exprs[i] || '')
+  }
+  parts.push(strings[i])
+  return parts.join('')
 }

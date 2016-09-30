@@ -3,12 +3,17 @@
 
 A node.js-style module system for GLSL!
 
-This module contains glslify's command-line interface (CLI) and
-[browserify](http://browserify.org/) transform. It forms one of the core
-components of the [stack.gl](http://stack.gl/) ecosystem, allowing you to
-install GLSL modules from [npm](http://npmjs.com) and use them in your
-shaders. This makes it trivial to piece together different effects and
-techniques from the community, including but certainly not limited to
+This module contains:
+
+* glslify's command-line interface (CLI)
+* glslify node/electron interface
+* [browserify](http://browserify.org/) transform
+
+It forms one of the core components of the [stack.gl](http://stack.gl/)
+ecosystem, allowing you to install GLSL modules from [npm](http://npmjs.com) and
+use them in your shaders. This makes it trivial to piece together different
+effects and techniques from the community, including but certainly not limited
+to
 [fog](https://github.com/hughsk/glsl-fog),
 [noise](https://github.com/hughsk/glsl-noise),
 [film grain](https://github.com/mattdesl/glsl-film-grain),
@@ -32,6 +37,62 @@ discuss integrating glslify with your platform of choice.
 [Shadertoy](http://shadertoy.com/) and
 [GLSL Sandbox](http://glslsandbox.com/)
 with built in support for glslify.*
+
+## Example
+
+``` javascript
+var glsl = require('glslify')
+console.log(glsl`
+  #pragma glslify: noise = require('glsl-noise/simplex/3d')
+
+  precision mediump float;
+  varying vec3 vpos;
+  void main () {
+    gl_FragColor = vec4(noise(vpos*25.0),1);
+  }
+`)
+```
+
+## Module API
+
+``` javascript
+var glsl = require('glslify')
+```
+
+### var src = `glsl\`shader source...\``
+
+Compile a shader inline using `glsl` as a
+[tagged template string function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals).
+
+### var src = glsl(file, opts)
+### var src = glsl(shaderSource, opts)
+
+Compile a shader using an inline shader string or a file name.
+
+These are convencience methods provided that call `glsl.compile()` or
+`glsl.file()` accordingly. These methods are also provided for backwards
+compatibility with the previous `< 6` interface.
+
+Optionally provide:
+
+* `opts.basedir` - directory to resolve relative paths
+* `opts.transform` - an array of transform functions, transform module name
+
+### var src = glsl.compile(src, opts)
+
+Compile a shader string from a string `src`.
+
+* `opts.basedir` - directory to resolve relative paths in `src`
+* `opts.transform` - an array of transform functions, transform module name
+strings, or `[trname,tropts]` pairs
+
+### var src = glsl.file(filename, opts)
+
+Compile a shader from a `filename`.
+
+* `opts.basedir` - directory to resolve relative paths in `src`
+* `opts.transform` - an array of transform functions, transform module name
+strings, or `[trname,tropts]` pairs
 
 ## Installation
 
@@ -93,15 +154,29 @@ in your `package.json` file:
 ```
 
 When writing your app, you should be able to require and call
-glslify like so:
+glslify the same as the node/electron interface, like so:
 
 ``` javascript
 // index.js
-var glslify = require('glslify')
+var glsl = require('glslify')
 
-var src = glslify(__dirname + '/shader.glsl')
-
+var src = glsl.file('./shader.glsl')
 console.log(src)
+```
+
+or using tagged template strings:
+
+``` javascript
+var glsl = require('glslify')
+console.log(glsl`
+  #pragma glslify: noise = require('glsl-noise/simplex/3d')
+
+  precision mediump float;
+  varying vec3 vpos;
+  void main () {
+    gl_FragColor = vec4(noise(vpos*25.0),1);
+  }
+`)
 ```
 
 Your glslify calls will be replaced with bundled GLSL strings
@@ -112,24 +187,6 @@ at build time automatically for you!
 var src = "#define GLSLIFY 1\n\nprecision mediump float; ..."
 
 console.log(src)
-```
-
-### Inline mode
-
-By passing the `inline` option as true, you can write your
-shader inline instead of requiring it to be in a separate
-file:
-
-``` javascript
-var glslify = require('glslify')
-
-var src = glslify(`
-  precision mediump float;
-
-  void main() {
-    gl_FragColor = vec4(1.0);
-  }
-`, { inline: true })
 ```
 
 ### [Webpack](http://webpack.github.io/) Loader
@@ -431,7 +488,7 @@ options like so:
 ``` javascript
 var glslify = require('glslify')
 
-glslify(__dirname + '/shader.glsl', {
+glslify.file(__dirname + '/shader.glsl', {
   transform: [
     ["glslify-hex", {
       "option-1": true,
@@ -442,58 +499,6 @@ glslify(__dirname + '/shader.glsl', {
   ]
 })
 ```
-
-## Migrating from glslify@1 to glslify@2
-
-There are two important changes to note:
-
-* [gl-shader](http://github.com/stackgl/gl-shader) is no longer bundled in with
-  glslify's browserify transform.
-* glslify now accepts files individually, rather than frag/vert pairings.
-
-The following:
-
-``` javascript
-var glslify = require('glslify')
-
-var shader = glslify({
-  frag: './shader.frag',
-  vert: './shader.vert'
-})(gl)
-```
-
-Should now be created like so:
-
-``` javascript
-var glShader = require('gl-shader')
-var glslify  = require('glslify')
-
-var shader = glShader(gl,
-  glslify('./shader.vert'),
-  glslify('./shader.frag')
-)
-```
-
-## Module API
-
-You can use glslify from Node using `glslify.bundle`. The operation is
-performed asynchronously, but otherwise it shares the same API as
-glslify's browserify transform.
-
-### `glslify.bundle(file, opts, done)`
-
-Takes a `file` and calls `done(err, source, files)` with the finished shader
-when complete. `files` is an array of all the files required from the
-dependency tree, including the entry file.
-
-Options include:
-
-* `inline`: if set to true, you can pass the GLSL source directly in
-  place of the `file` argument.
-* `transform`: an array of transforms to apply to the shader.
-* `basedir`: the directory from which to resolve modules from in your
-  first shader. Defaults to the first file's directory, or `process.cwd()`
-  if inline mode is enabled.
 
 ## Further Reading
 
