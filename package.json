@@ -24,6 +24,7 @@
     "falafel": "^2.0.0",
     "from2": "^2.3.0",
     "glsl-resolve": "0.0.1",
+    "glsl-token-whitespace-trim": "^1.0.0",
     "glslify-bundle": "^5.0.0",
     "glslify-deps": "^1.2.5",
     "minimist": "^1.2.0",
