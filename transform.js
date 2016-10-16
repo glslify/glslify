@@ -208,6 +208,8 @@ module.exports = function (file, opts) {
 
   function createDeps (opts) {
     var depper = gdeps(opts)
+    depper.on('error', function (err) { d.emit('error', err) })
+    depper.on('file', function (file) { d.emit('file', file) })
     var transforms = opts.transform || []
     transforms = Array.isArray(transforms) ? transforms : [transforms]
     transforms.forEach(function(transform) {
