@@ -516,7 +516,6 @@ glslify.file(__dirname + '/shader.glsl', {
 
 ## glslify in the Wild
 
-* [PixiJS](http://www.pixijs.com/)
 * [Plotly](https://plot.ly/)
 * [Audiograph](http://audiograph.xyz/)
 * [KAMRA: Deja Vu](https://kamra.invisi-dir.com/)
