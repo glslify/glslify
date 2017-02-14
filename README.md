@@ -516,11 +516,18 @@ glslify.file(__dirname + '/shader.glsl', {
 
 ## glslify in the Wild
 
+* [PixiJS](http://www.pixijs.com/)
+* [Plotly](https://plot.ly/)
+* [Audiograph](http://audiograph.xyz/)
 * [KAMRA: Deja Vu](https://kamra.invisi-dir.com/)
+* [Swiss Army Man](http://swissarmyman.com/)
+* [Connecting Europe](https://collectingeurope.net/)
+* [Kuva](https://www.kuva.io/)
+* [The Law of The Jungle](http://thelawofthejungle.com/)
+* [Make Me Pulse](http://2016.makemepulse.com)
 * [SMASHING Mega Scene](https://github.com/edankwan/SMASHING-Mega-Scene)
-* [Uber's deck.gl](https://github.com/uber-common/deck.gl)
-* [Glam](https://github.com/glamjs/glam)
-* [run.south.im](http://run.south.im/)
+* [Takumi Hasegawa](https://tkmh.me/)
+* [ectoplasmid](https://hughsk.io/ectoplasmid)
 * [glslb.in](http://glslb.in/)
 * [N|Solid](https://nodesource.com/products/nsolid)
 
