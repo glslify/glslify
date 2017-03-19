@@ -1,6 +1,7 @@
 const glslBundle = require('glslify-bundle')
 const glslDeps   = require('glslify-deps')
 const browserify = require('browserify')
+const through    = require('through2')
 const from       = require('from2')
 const test       = require('tape')
 const glslify    = require('../transform')
@@ -154,6 +155,44 @@ test('browserify transform: inline', function(t) {
         log: function(source) {
           t.ok(typeof source === 'string', 'collected string')
           t.ok(source.indexOf('gl_FragColor') !== -1, 'includes gl_FragColor')
+        }
+      }
+    }, function(err) {
+      t.ifError(err, 'executed without errors')
+    })
+  }
+})
+
+test('browserify transform: allow import statements in the same file', function(t) {
+  browserify({ basedir: __dirname }).add(from([
+    'var glslify = require("../")\n',
+    'import glslify from "../"\n',
+
+    'console.log(glslify("',
+      'precision mediump float;\\n',
+      'void main() {}',
+    '"))'
+  ]))
+    .transform(glslify)
+    .transform(through.bind(null, write))
+    .bundle()
+    .pipe(bl(bundled))
+
+  function write (chunk, _, next) {
+    chunk = String(chunk)
+    chunk = chunk.replace(/import.+\n/g, '')
+    next(null, chunk)
+  }
+
+  function bundled(err, bundle) {
+    if (err) return t.ifError(err)
+
+    t.plan(2)
+    vm.runInNewContext(bundle, {
+      console: {
+        log: function(source) {
+          t.ok(typeof source === 'string', 'collected string')
+          t.ok(source.indexOf('main()') !== -1, 'includes main')
         }
       }
     }, function(err) {

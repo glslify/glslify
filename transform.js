@@ -13,6 +13,13 @@ var extend = require('xtend')
 
 var glslfile0 = path.join(__dirname,'index.js')
 var glslfile1 = path.join(__dirname,'index')
+var parseOptions = {
+  ecmaVersion: 6,
+  sourceType: 'module',
+  allowReturnOutsideFunction: true,
+  allowImportExportEverywhere: true,
+  allowHashBang: true
+}
 
 module.exports = function (file, opts) {
   if (path.extname(file) == '.json') return through()
@@ -34,7 +41,7 @@ module.exports = function (file, opts) {
   d.setReadable(out)
   d.setWritable(concat({ encoding: 'string' }, function (src) {
     var pending = 1
-    try { var fout = falafel(src, { ecmaVersion: 6 }, onnode) }
+    try { var fout = falafel(src, parseOptions, onnode) }
     catch (err) { return d.emit('error', err) }
     done()
     function onnode (node) {
