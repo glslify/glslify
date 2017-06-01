@@ -256,7 +256,7 @@ test('case 2: variable with file string', function(t) {
     .split('\n')
   browserify({ basedir: __dirname, transform: glslify }).add(from([
     'var glx = require("../")\n',
-    'console.log(glx("./fixtures/globe.frag"))'
+    'console.log(glx("./fixtures/globe.frag"), "glslify")'
   ])).bundle(function (err, bundle) {
     t.error(err)
     Function(['console'],bundle.toString('utf8'))({
@@ -269,7 +269,7 @@ test('case 2: variable with file string', function(t) {
 test('case 3: require expression with file string', function(t) {
   t.plan(2)
   browserify({ basedir: __dirname, transform: glslify }).add(from([
-    'console.log(require("../")("./fixtures/globe.frag"))\n'
+    'console.log(require("../")("./fixtures/globe.frag"), "glslify")\n'
   ])).bundle(function (err, bundle) {
     t.error(err)
     Function(['console'],bundle.toString('utf8'))({
@@ -282,7 +282,7 @@ test('case 3: require expression with file string', function(t) {
 test('case 4: require expression with file method', function(t) {
   t.plan(2)
   browserify({ basedir: __dirname, transform: glslify }).add(from([
-    'console.log(require("../").file("./fixtures/globe.frag"))\n'
+    'console.log(require("../").file("./fixtures/globe.frag"), "glslify")\n'
   ])).bundle(function (err, bundle) {
     t.error(err)
     Function(['console'],bundle.toString('utf8'))({

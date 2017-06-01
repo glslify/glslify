@@ -41,6 +41,12 @@ module.exports = function (file, opts) {
   d.setReadable(out)
   d.setWritable(concat({ encoding: 'string' }, function (src) {
     var pending = 1
+    if (src.indexOf('glslify') === -1) {
+      out.push(src)
+      out.push(null)
+      return
+    }
+
     try { var fout = falafel(src, parseOptions, onnode) }
     catch (err) { return d.emit('error', err) }
     done()
