@@ -59,7 +59,7 @@ console.log(glsl`
 var glsl = require('glslify')
 ```
 
-### var src = `glsl\`shader source...\``
+### var src = glsl\`shader source...\`
 
 Compile a shader inline using `glsl` as a
 [tagged template string function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_template_literals).
