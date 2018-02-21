@@ -96,6 +96,6 @@ function output(err, tree) {
 
   function done() {
     if (!argv.output) return process.stdout.write(src)
-    fs.writeFile(argv.output, src)
+    fs.writeFileSync(argv.output, src)
   }
 }
