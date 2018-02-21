@@ -138,7 +138,7 @@ module.exports = function (file, opts) {
       var marg = evaluate(p.arguments[0])
       var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
       var d = createDeps(extend({ cwd: mdir }, mopts))
-      if (/\n/.test(marg)) { // source string
+      if (/(void\s+main\s?\(.*\)|\n)/.test(marg)) { // source string
         d.inline(marg, mdir, ondeps)
       } else gresolve(marg, { basedir: mdir }, function (err, res) {
         if (err) d.emit('error', err)
