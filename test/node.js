@@ -18,6 +18,12 @@ test('node string', function(t) {
   t.end()
 })
 
+test('node string with single line shader', function(t) {
+  var output = glx('void main () {}')
+  t.equal(output, '#define GLSLIFY 1\nvoid main () {}')
+  t.end()
+})
+
 test('node simulated tagged template string', function(t) {
   var output = glx([''
     +'  #pragma glslify: noise = require("glsl-noise/simplex/3d")\n'

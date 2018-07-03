@@ -163,41 +163,42 @@ test('browserify transform: inline', function(t) {
   }
 })
 
-test('browserify transform: allow import statements in the same file', function(t) {
-  browserify({ basedir: __dirname }).add(from([
-    'var glslify = require("../")\n',
-    'import glslify from "../"\n',
+test('browserify transform: ensure things work with one-line shader string', function (t) {
+  from([
+    'const glslify = require("glslify");\n',
 
-    'console.log(glslify("',
-      'precision mediump float;\\n',
-      'void main() {}',
-    '"))'
-  ]))
-    .transform(glslify)
-    .transform(through.bind(null, write))
-    .bundle()
+    'console.log(glslify("void main () {}"))'
+  ]).pipe(glslify('/test/file/stream.js', { basedir: __dirname }))
     .pipe(bl(bundled))
-
-  function write (chunk, _, next) {
-    chunk = String(chunk)
-    chunk = chunk.replace(/import.+\n/g, '')
-    next(null, chunk)
+  
+  function bundled (err, src) {
+    if (err) return t.fail(err)
+    var expected = [
+      'const glslify = require("glslify");',
+      'console.log(glslify(["#define GLSLIFY 1\\nvoid main () {}"]))'
+    ].join('\n').trim()
+    t.equal(src.toString().trim(), expected)
+    t.end()
   }
+})
 
-  function bundled(err, bundle) {
-    if (err) return t.ifError(err)
-
-    t.plan(2)
-    vm.runInNewContext(bundle, {
-      console: {
-        log: function(source) {
-          t.ok(typeof source === 'string', 'collected string')
-          t.ok(source.indexOf('main()') !== -1, 'includes main')
-        }
-      }
-    }, function(err) {
-      t.ifError(err, 'executed without errors')
-    })
+test('browserify transform: allow import statements in same file', function (t) {
+  from([
+    'import glslify2 from "glslify";\n',
+    'const glslify = require("glslify");\n',
+    'console.log(glslify("void main () {}"))'
+  ]).pipe(glslify('/test/file/stream.js', { basedir: __dirname }))
+    .pipe(bl(bundled))
+  
+  function bundled (err, src) {
+    if (err) return t.fail(err)
+    var expected = [
+      'import glslify2 from "glslify";',
+      'const glslify = require("glslify");',
+      'console.log(glslify(["#define GLSLIFY 1\\nvoid main () {}"]))'
+    ].join('\n').trim()
+    t.equal(src.toString().trim(), expected)
+    t.end()
   }
 })
 

@@ -6,12 +6,13 @@ var extend        = require('xtend')
 var stackTrace    = require('stack-trace')
 
 module.exports = function(arg, opts) {
+  var isShaderString = /(void\s+main\s?\(.*\)|\n)/.test(arg)
   if (Array.isArray(arg)) { // template string
     return iface().tag.apply(null, arguments)
-  } else if (typeof arg === 'string' && !/\n/.test(arg) && opts && opts._flags) {
+  } else if (typeof arg === 'string' && !isShaderString && opts && opts._flags) {
     // browserify transform
     return require('./transform.js').apply(this, arguments)
-  } else if (typeof arg === 'string' && /\n/.test(arg)) { // source string
+  } else if (typeof arg === 'string' && isShaderString) { // source string
     return iface().compile(arg, opts)
   } else if (typeof arg === 'string') { // source file
     return iface().file(arg, opts)
