@@ -14,7 +14,7 @@ var extend = require('xtend')
 var glslfile0 = path.join(__dirname,'index.js')
 var glslfile1 = path.join(__dirname,'index')
 var parseOptions = {
-  ecmaVersion: 6,
+  ecmaVersion: 10,
   sourceType: 'module',
   allowReturnOutsideFunction: true,
   allowImportExportEverywhere: true,
