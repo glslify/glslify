@@ -42,7 +42,7 @@ with built in support for glslify.*
 
 ``` javascript
 var glsl = require('glslify')
-console.log(glsl`
+console.log(glsl(`
   #pragma glslify: noise = require('glsl-noise/simplex/3d')
 
   precision mediump float;
@@ -50,7 +50,7 @@ console.log(glsl`
   void main () {
     gl_FragColor = vec4(noise(vpos*25.0),1);
   }
-`)
+`))
 ```
 
 ## Module API
