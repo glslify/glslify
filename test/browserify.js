@@ -10,6 +10,50 @@ const bl         = require('bl')
 const fs         = require('fs')
 const path       = require('path')
 
+test('browserify transform: do not fail with async/await syntax', function (t) {
+  const glslStream = glslify('/test/file/stream.js', { basedir: __dirname });
+  glslStream.on('error', err => console.error(err))
+  from([
+    'const glslify = require("glslify");\n',
+    'console.log(glslify("void main () {}"));\n',
+    'const foo = async () => {};'
+  ]).pipe(glslStream)
+    .pipe(bl(bundled))
+  
+  function bundled (err, src) {
+    if (err) return t.fail(err)
+    var expected = [
+      'const glslify = require("glslify");',
+      'console.log(glslify(["#define GLSLIFY 1\\nvoid main () {}"]));',
+      'const foo = async () => {};'
+    ].join('\n').trim()
+    t.equal(src.toString().trim(), expected)
+    t.end()
+  }
+})
+
+test('browserify transform: do not fail with rest spread', function (t) {
+  const glslStream = glslify('/test/file/stream.js', { basedir: __dirname });
+  glslStream.on('error', err => console.error(err))
+  from([
+    'const glslify = require("glslify");\n',
+    'console.log(glslify("void main () {}"));\n',
+    'const foo = { ...{ bar: 2 } };'
+  ]).pipe(glslStream)
+    .pipe(bl(bundled))
+  
+  function bundled (err, src) {
+    if (err) return t.fail(err)
+    var expected = [
+      'const glslify = require("glslify");',
+      'console.log(glslify(["#define GLSLIFY 1\\nvoid main () {}"]));',
+      'const foo = { ...{ bar: 2 } };'
+    ].join('\n').trim()
+    t.equal(src.toString().trim(), expected)
+    t.end()
+  }
+})
+
 test('browserify transform: simple example', function(t) {
   browserify({ basedir: __dirname }).add(from([
     'var glslify = require("../")\n',
