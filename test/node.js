@@ -53,3 +53,27 @@ if (supportsTTS) test('node tagged template string', function(t) {
   t.ok(/vpos\*25\.0\),1/.test(output), 'interpolated var')
   t.end()
 })
+
+test('test function transform with post option', function(t) {
+  var transform = function (file, src, opts, done) {
+    if (done) {
+      done(null, src);
+    } else {
+      return src;
+    }
+  }
+  var output = glx([
+    '  #pragma glslify: noise = require("glsl-noise/simplex/3d")',
+    '  precision mediump float;',
+    '  varying vec3 vpos;',
+    '  void main () {',
+    '    gl_FragColor = vec4(noise(vpos*25.0),1);',
+    '  }',
+  ].join('\n'), {
+    transform: [
+      [transform, { post: true }]
+    ]
+  })
+  t.ok(/taylorInvSqrt/.test(output), 'contains parts of the file')
+  t.end()
+})

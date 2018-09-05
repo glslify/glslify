@@ -73,8 +73,12 @@ function iface () {
   function bundle (deps) {
     var source = glslifyBundle(deps)
     posts.forEach(function (tr) {
-      var target = nodeResolve.sync(tr.name, { basedir: basedir })
-      var transform = require(target)
+      if (typeof tr.name === 'function') {
+        var transform = tr.name
+      } else {
+        var target = nodeResolve.sync(tr.name, { basedir: basedir })
+        var transform = require(target)
+      }
       var src = transform(null, source, { post: true })
       if (src) source = src
     })
