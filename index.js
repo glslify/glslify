@@ -79,7 +79,7 @@ function iface () {
         var target = nodeResolve.sync(tr.name, { basedir: basedir })
         var transform = require(target)
       }
-      var src = transform(null, source, { post: true })
+      var src = transform((deps && deps[0] && deps[0].file) || null, source, { post: true })
       if (src) source = src
     })
     return source
