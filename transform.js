@@ -25,6 +25,17 @@ module.exports = function (file, opts) {
   if (path.extname(file) == '.json') return through()
   if (!opts) opts = {}
   var posts = []
+  var postTransform = opts['post-transform']
+  if (typeof opts.p === 'string') {
+    posts.push(opts.p)
+  } else if (Array.isArray(opts.p)) {
+    Array.prototype.push(posts, opts.p)
+  }
+  if (typeof postTransform === 'string') {
+    posts.push(postTransform)
+  } else if (Array.isArray(postTransform)) {
+    Array.prototype.push(posts, postTransform)
+  }
   var dir = path.dirname(file)
   var glvar = null, mdir = dir
   var evars = {
@@ -239,12 +250,12 @@ module.exports = function (file, opts) {
   }
   function bundle (deps) {
     var source = gbundle(deps)
-    posts.forEach(function (tr) {
-      var target = nodeResolve.sync(tr.name, {
-        basedir: base
+    posts.forEach(function (name) {
+      var target = resolve.sync(name, {
+        basedir: process.cwd()
       })
       var transform = require(target)
-      var src = transform(null, source, { post: true })
+    var src = transform((deps && deps[0] && deps[0].file) || null, source, { post: true })
       if (src) source = src
     })
     return source
