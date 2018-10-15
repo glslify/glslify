@@ -2,7 +2,6 @@ var glslifyBundle = require('glslify-bundle')
 var glslifyDeps   = require('glslify-deps/sync')
 var nodeResolve   = require('resolve')
 var path          = require('path')
-var extend        = require('xtend')
 var stackTrace    = require('stack-trace')
 
 module.exports = function(arg, opts) {
