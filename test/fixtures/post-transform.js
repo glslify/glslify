@@ -4,5 +4,5 @@ module.exports = function(filename, src, opts, done) {
 
   src = src.toUpperCase()
 
-  return done(null, src)
+  return done ? done(null, src) : src
 }

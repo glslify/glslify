@@ -56,6 +56,7 @@ if (supportsTTS) test('node tagged template string', function(t) {
 
 test('test function transform with post option', function(t) {
   var transform = function (file, src, opts, done) {
+    src = src.toUpperCase();
     if (done) {
       done(null, src);
     } else {
@@ -74,6 +75,6 @@ test('test function transform with post option', function(t) {
       [transform, { post: true }]
     ]
   })
-  t.ok(/taylorInvSqrt/.test(output), 'contains parts of the file')
+  t.ok(/TAYLORINVSQRT/.test(output), 'contains parts of the modified file')
   t.end()
 })

@@ -32,6 +32,17 @@ module.exports = function (file, opts) {
     __filename: file,
     require: { resolve: resolve }
   }
+
+  ;[]
+    .concat(opts.post || [])
+    .concat(opts.p || [])
+    .forEach(function (post) {
+      post = Array.isArray(post) ? post : [post]
+      var name = post[0]
+      var opts = post[1] || {}
+      posts.push({ name: name, opts: opts })
+    })
+
   function evaluate (expr) {
     return seval(expr, evars)
   }
@@ -167,10 +178,10 @@ module.exports = function (file, opts) {
     }
     function callfile (p, cb) {
       var mfile = p.arguments[0].value
-      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps({ cwd: mdir })
       gresolve(mfile, { basedir: mdir }, function (err, res) {
         if (err) return d.emit('error', err)
+        var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+        var d = createDeps(extend({ cwd: path.dirname(res) }, mopts))
         d.add(res, ondeps)
       })
       function ondeps (err, deps) {
@@ -183,10 +194,10 @@ module.exports = function (file, opts) {
     }
     function rcallfile (p, cb) {
       var mfile = evaluate(p.arguments[0])
-      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps({ cwd: mdir })
       gresolve(mfile, { basedir: mdir }, function (err, res) {
         if (err) return d.emit('error', err)
+        var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
+        var d = createDeps(extend({ cwd: path.dirname(res) }, mopts))
         d.add(res, ondeps)
       })
       function ondeps (err, deps) {
@@ -221,6 +232,7 @@ module.exports = function (file, opts) {
 
   function createDeps (opts) {
     var depper = gdeps(opts)
+    var basedir = opts.cwd
     depper.on('error', function (err) { d.emit('error', err) })
     depper.on('file', function (file) { d.emit('file', file) })
     var transforms = opts.transform || []
@@ -230,7 +242,7 @@ module.exports = function (file, opts) {
       var name = transform[0]
       var opts = transform[1] || {}
       if (opts.post) {
-        posts.push({ name: name, opts: opts })
+        posts.push({ name: name, opts: opts, base: basedir })
       } else {
         depper.transform(name, opts)
       }
@@ -240,10 +252,14 @@ module.exports = function (file, opts) {
   function bundle (deps) {
     var source = gbundle(deps)
     posts.forEach(function (tr) {
-      var target = nodeResolve.sync(tr.name, {
-        basedir: base
-      })
-      var transform = require(target)
+      var transform
+      if (typeof tr.name === "function") {
+        transform = tr.name
+      } else {
+        var target = resolve.sync(tr.name, { basedir: tr.base || mdir })
+        transform = require(target)
+      }
+
       var src = transform(null, source, { post: true })
       if (src) source = src
     })
