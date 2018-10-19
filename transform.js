@@ -9,7 +9,6 @@ var path = require('path')
 var seval = require('static-eval')
 var resolve = require('resolve')
 var gresolve = require('glsl-resolve')
-var extend = require('xtend')
 
 var glslfile0 = path.join(__dirname,'index.js')
 var glslfile1 = path.join(__dirname,'index')
@@ -148,7 +147,7 @@ module.exports = function (file, opts) {
     function callexpr (p, cb) {
       var marg = evaluate(p.arguments[0])
       var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps(extend({ cwd: mdir }, mopts))
+      var d = createDeps(Object.assign({ cwd: mdir }, mopts))
       if (/(void\s+main\s?\(.*\)|\n)/.test(marg)) { // source string
         d.inline(marg, mdir, ondeps)
       } else gresolve(marg, { basedir: mdir }, function (err, res) {

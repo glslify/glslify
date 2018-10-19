@@ -32,8 +32,7 @@
     "stack-trace": "0.0.9",
     "static-eval": "^2.0.0",
     "tape": "^4.6.0",
-    "through2": "^2.0.1",
-    "xtend": "^4.0.0"
+    "through2": "^2.0.1"
   },
   "devDependencies": {
     "browserify": "^16.2.2",
