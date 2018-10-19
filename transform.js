@@ -48,50 +48,28 @@ module.exports = function (file, opts) {
       return
     }
 
-    ;[]
-      .concat(opts.post || [])
-      .concat(opts.p || [])
-      .forEach(function (post) {
-        post = Array.isArray(post) ? post : [post]
-        var name = post[0]
-        var opts = post[1] || {}
-        posts.push({ name: name, opts: opts, base: process.cwd() })
-      })
-
     try { var fout = falafel(src, parseOptions, onnode) }
     catch (err) { return d.emit('error', err) }
     done()
+
     function onnode (node) {
-      if (node.type === 'Identifier' && node.name === 'require'
-      && node.parent.type === 'CallExpression'
-      && node.parent.arguments[0]
-      && node.parent.arguments[0].type === 'Literal'
-      && node.parent.arguments[0].value === 'path'
-      && node.parent.parent.type === 'VariableDeclarator') {
+      // case: path = require('path')
+      if (isRequirePath(node)) {
         evars.path = path
-      } else if (node.type === 'Identifier' && node.name === 'require'
-      && node.parent.type === 'CallExpression'
-      && node.parent.arguments[0]
-      && node.parent.arguments[0].type === 'Literal'
-      && (/^glslify(?:\/index(?:\.js)?)?/.test(node.parent.arguments[0].value)
-      || path.resolve(dir,node.parent.arguments[0].value) === __dirname
-      || path.resolve(dir,node.parent.arguments[0].value) === glslfile0
-      || path.resolve(dir,node.parent.arguments[0].value) === glslfile1)) {
+      } else if (isRequireGlslify(node, dir)) {
         var p = node.parent.parent, pp = p.parent
-        if (p.type === 'CallExpression' && pp.type === 'CallExpression') {
+        if (isReqCallExpression(p, pp)) {
           // case: require('glslify')(...)
           pending++
           callexpr(p, done)
         } else if (p.type === 'VariableDeclarator') {
           // case: var glvar = require('glslify')
           glvar = p.id.name
-        } else if (p.type === 'MemberExpression' && p.property.name === 'file'
-        && pp.type === 'CallExpression') {
+        } else if (isReqCallFile(p, pp)) {
           // case: require('glslify').file(...)
           pending++
-          rcallfile(pp, done)
-        } else if (p.type === 'MemberExpression' && p.property.name === 'compile'
-        && pp.type === 'CallExpression') {
+          callfile(pp, pp.callee.object.source(), done)
+        } else if (isReqCallCompile(p, pp)) {
           // case: require('glslify').compile(...)
           pending++
           rcallcompile(pp, done)
@@ -100,32 +78,25 @@ module.exports = function (file, opts) {
           pending++
           tagexpr(p, done)
         }
-      } else if (node.type === 'Identifier' && node.name === glvar
-      && node.parent.type === 'CallExpression') {
+      } else if (isCallExpression(node, glvar)) {
         // case: glvar(...)
         pending++
         callexpr(node.parent, done)
-      } else if (node.type === 'TaggedTemplateExpression'
-      && node.tag.name === glvar) {
+      } else if (isTagExpression(node, glvar)) {
         // case: glvar`...`
         pending++
         tagexpr(node, done)
-      } else if (node.type === 'Identifier' && node.name === glvar
-      && node.parent.type === 'MemberExpression'
-      && node.parent.property.name === 'file'
-      && node.parent.parent.type === 'CallExpression'
-      && node.parent.parent.arguments[0]) {
+      } else if (isCallFile(node, glvar)) {
+        // case: glvar.file(...)
         pending++
-        callfile(node.parent.parent, done)
-      } else if (node.type === 'Identifier' && node.name === glvar
-      && node.parent.type === 'MemberExpression'
-      && node.parent.property.name === 'compile'
-      && node.parent.parent.type === 'CallExpression'
-      && node.parent.parent.arguments[0]) {
+        callfile(node.parent.parent, glvar, done)
+      } else if (isCallCompile(node, glvar)) {
+        // case: glvar.compile(...)
         pending++
         callcompile(node.parent.parent, done)
       }
     }
+
     function tagexpr (node, cb) {
       var q = node.quasi
       var shadersrc = q.quasis.map(function (s) {
@@ -260,9 +231,73 @@ module.exports = function (file, opts) {
         transform = require(target)
       }
 
-      var src = transform(null, source, { post: true })
+      var src = transform(rootFile, source, extend(tr.opts, { post: true }))
       if (src) source = src
-    })
+    }
     return source
   }
+}
+
+function isRequirePath (node) {
+  return node.type === 'Identifier' && node.name === 'require'
+    && node.parent.type === 'CallExpression'
+    && node.parent.arguments[0]
+    && node.parent.arguments[0].type === 'Literal'
+    && node.parent.arguments[0].value === 'path'
+    && node.parent.parent.type === 'VariableDeclarator'
+}
+
+function isRequireGlslify (node, dir) {
+  return node.type === 'Identifier' && node.name === 'require'
+    && node.parent.type === 'CallExpression'
+    && node.parent.arguments[0]
+    && node.parent.arguments[0].type === 'Literal'
+    && (/^glslify(?:\/index(?:\.js)?)?/.test(node.parent.arguments[0].value)
+    || path.resolve(dir,node.parent.arguments[0].value) === __dirname
+    || path.resolve(dir,node.parent.arguments[0].value) === glslfile0
+    || path.resolve(dir,node.parent.arguments[0].value) === glslfile1)
+}
+
+function isReqCallExpression (node, parent) {
+  return node.type === 'CallExpression'
+    && parent.type === 'CallExpression'
+}
+
+function isReqCallFile (node, parent) {
+  return node.type === 'MemberExpression'
+    && node.property.name === 'file'
+    && parent.type === 'CallExpression'
+}
+
+function isReqCallCompile (node, parent) {
+  return node.type === 'MemberExpression'
+    && node.property.name === 'compile'
+    && parent.type === 'CallExpression'
+}
+
+function isCallExpression (node, glvar) {
+  return node.type === 'Identifier'
+    && node.name === glvar
+    && node.parent.type === 'CallExpression'
+}
+
+function isTagExpression (node, glvar) {
+  return node.type === 'TaggedTemplateExpression'
+    && node.tag.name === glvar
+}
+
+function isCallFile (node, glvar) {
+  return node.type === 'Identifier' && node.name === glvar
+    && node.parent.type === 'MemberExpression'
+    && node.parent.property.name === 'file'
+    && node.parent.parent.type === 'CallExpression'
+    && node.parent.parent.arguments[0]
+}
+
+function isCallCompile (node, glvar) {
+  return node.type === 'Identifier' && node.name === glvar
+    && node.parent.type === 'MemberExpression'
+    && node.parent.property.name === 'compile'
+    && node.parent.parent.type === 'CallExpression'
+    && node.parent.parent.arguments[0]
 }
