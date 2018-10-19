@@ -33,16 +33,6 @@ module.exports = function (file, opts) {
     require: { resolve: resolve }
   }
 
-  ;[]
-    .concat(opts.post || [])
-    .concat(opts.p || [])
-    .forEach(function (post) {
-      post = Array.isArray(post) ? post : [post]
-      var name = post[0]
-      var opts = post[1] || {}
-      posts.push({ name: name, opts: opts })
-    })
-
   function evaluate (expr) {
     return seval(expr, evars)
   }
@@ -57,6 +47,16 @@ module.exports = function (file, opts) {
       out.push(null)
       return
     }
+
+    ;[]
+      .concat(opts.post || [])
+      .concat(opts.p || [])
+      .forEach(function (post) {
+        post = Array.isArray(post) ? post : [post]
+        var name = post[0]
+        var opts = post[1] || {}
+        posts.push({ name: name, opts: opts, base: process.cwd() })
+      })
 
     try { var fout = falafel(src, parseOptions, onnode) }
     catch (err) { return d.emit('error', err) }
