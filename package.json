@@ -8,9 +8,9 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "npm run test-node && npm run test-electron",
-    "test-node": "node test | tap-spec",
-    "test-electron": "test/electron.sh"
+    "test": "npm run test:node",
+    "test:node": "node test",
+    "test:electron": "test/electron.sh"
   },
   "authors": [
     "Hugh Kennedy <hughskennedy@gmail.com> (http://hughsk.io/)",

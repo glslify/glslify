@@ -1,5 +1,5 @@
 # glslify [![stability][0]][1]
-[![npm version][2]][3] [![downloads][4]][5]
+[![npm version][2]][3] [![downloads][4]][5] [![travis][6]][7]
 
 A node.js-style module system for GLSL!
 
@@ -548,3 +548,5 @@ MIT. See [LICENSE.md](http://github.com/stackgl/glslify/blob/master/LICENSE.md) 
 [3]: https://npmjs.org/package/glslify
 [4]: http://img.shields.io/npm/dm/glslify.svg?style=flat-square
 [5]: https://npmjs.org/package/glslify
+[6]: http://img.shields.io/travis/glslify/glslify.svg?style=flat-square
+[7]: https://travis-ci.org/glslify/glslify

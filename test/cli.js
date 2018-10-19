@@ -5,11 +5,11 @@ const test    = require('tape')
 const path    = require('path')
 const fs      = require('fs')
 const bl      = require('bl')
-const glslify = require.resolve('../bin')
+const glslify = './bin.js'
 
 test('cli: globe.frag', function(t) {
-  exec('node '+quote([ glslify,
-    path.join(__dirname, 'fixtures', 'globe.frag'),
+  exec('node ' + quote([ glslify,
+    path.join('test', 'fixtures', 'globe.frag'),
     '-t', 'glslify-hex'
   ]), function(err, stdout, stderr) {
     if (err) return t.ifError(err)
@@ -23,8 +23,8 @@ test('cli: globe.frag', function(t) {
 })
 
 test('cli: globe.vert', function(t) {
-  exec('node '+quote([ glslify,
-    path.join(__dirname, 'fixtures', 'globe.vert'),
+  exec('node ' + quote([ glslify,
+    path.join('test', 'fixtures', 'globe.vert'),
     '-t', 'glslify-hex'
   ]), function(err, stdout, stderr) {
     if (err) return t.ifError(err)
@@ -46,7 +46,7 @@ test('cli: globe.vert', function(t) {
 test.skip('cli: globe.vert (inline)', function(t) {
   var ps = spawn(glslify, [ '-t', 'glslify-hex' ])
 
-  fs.createReadStream(path.join(__dirname, 'fixtures', 'globe.vert'))
+  fs.createReadStream(path.join('test', 'fixtures', 'globe.vert'))
     .pipe(ps.stdin)
 
   ps.stdout.pipe(bl(function(err, stdout1) {
@@ -55,7 +55,7 @@ test.skip('cli: globe.vert (inline)', function(t) {
     stdout1 += ''
 
     exec(quote([ glslify,
-      path.join(__dirname, 'fixtures', 'globe.vert'),
+      path.join('test', 'fixtures', 'globe.vert'),
       '-t', 'glslify-hex'
     ]), function(err, stdout2) {
       if (err) return t.ifError(err)
