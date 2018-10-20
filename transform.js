@@ -129,15 +129,16 @@ module.exports = function (file, opts) {
       var d = createDeps({ cwd: mdir })
       d.inline(shadersrc, mdir, function (err, deps) {
         if (err) return d.emit('error', err)
-        try { var bsrc = applyPostTransforms(null, deps, {}) }
-        catch (err) { return d.emit('error', err) }
-        node.update(node.tag.source() + '('
-          + JSON.stringify(bsrc.split('__GLX_PLACEHOLDER__'))
-          + [''].concat(q.expressions.map(function (e) {
-            return e.source()
-          })).join(',')
-          + ')')
-        cb()
+        applyPostTransforms(null, deps, {}, function (err, bsrc) {
+          if (err) return d.emit('error', err)
+          node.update(node.tag.source() + '('
+            + JSON.stringify(bsrc.split('__GLX_PLACEHOLDER__'))
+            + [''].concat(q.expressions.map(function (e) {
+              return e.source()
+            })).join(',')
+            + ')')
+          cb()
+        })
       })
     }
     function callexpr (p, cb) {
@@ -153,10 +154,11 @@ module.exports = function (file, opts) {
       })
       function ondeps (err, deps) {
         if (err) return d.emit('error', err)
-        try { var bsrc = applyPostTransforms(resolved, deps, mopts) }
-        catch (err) { return d.emit('error', err) }
-        p.update(p.callee.source()+'(['+JSON.stringify(bsrc)+'])')
-        cb()
+        applyPostTransforms(resolved, deps, mopts, function (err, bsrc) {
+          if (err) return d.emit('error', err)
+          p.update(p.callee.source()+'(['+JSON.stringify(bsrc)+'])')
+          cb()
+        })
       }
     }
     function callcompile (p, cb) {
@@ -166,10 +168,11 @@ module.exports = function (file, opts) {
       d.inline(mfile, mdir, ondeps)
       function ondeps (err, deps) {
         if (err) return d.emit('error', err)
-        try { var bsrc = applyPostTransforms(null, deps, mopts) }
-        catch (err) { return d.emit('error', err) }
-        p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
-        cb()
+        applyPostTransforms(null, deps, mopts, function (err, bsrc) {
+          if (err) return d.emit('error', err)
+          p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
+          cb()
+        })
       }
     }
     function callfile (p, glvar, cb) {
@@ -181,10 +184,11 @@ module.exports = function (file, opts) {
         d.add(res, ondeps)
         function ondeps (err, deps) {
           if (err) return d.emit('error', err)
-          try { var bsrc = applyPostTransforms(res, deps, mopts) }
-          catch (err) { return d.emit('error', err) }
-          p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
-          cb()
+          applyPostTransforms(res, deps, mopts, function (err, bsrc) {
+            if (err) return d.emit('error', err)
+            p.update(glvar + '([' + JSON.stringify(bsrc) + '])')
+            cb()
+          })
         }
       })
     }
@@ -195,10 +199,11 @@ module.exports = function (file, opts) {
       d.inline(marg, mdir, ondeps)
       function ondeps (err, deps) {
         if (err) return d.emit('error', err)
-        try { var bsrc = applyPostTransforms(null, deps, mopts) }
-        catch (err) { return d.emit('error', err) }
-        p.update(p.callee.object.source()+'(['+JSON.stringify(bsrc)+'])')
-        cb()
+        applyPostTransforms(null, deps, mopts, function (err, bsrc) {
+          if (err) return d.emit('error', err)
+          p.update(p.callee.object.source()+'(['+JSON.stringify(bsrc)+'])')
+          cb()
+        })
       }
     }
     function done () {
@@ -227,7 +232,7 @@ module.exports = function (file, opts) {
     return depper
   }
 
-  function applyPostTransforms (rootFile, deps, mopts) {
+  function applyPostTransforms (rootFile, deps, mopts, done) {
     var source = glslBundle(deps)
     var localPosts = [].concat(mopts.transform || []).concat(mopts.t || [])
       .map(function (transform) {
@@ -237,23 +242,18 @@ module.exports = function (file, opts) {
         return opts.post && { name: name, opts: opts, base: path.dirname(rootFile) }
       })
       .filter(Boolean)
+      .concat(sharedPosts)
+      .map(function (tr) {
+        if (typeof tr.name === "function") {
+          tr.tr = tr.name
+        } else {
+          var target = resolve.sync(tr.name, { basedir: tr.base || mdir })
+          tr.tr = require(target)
+        }
+        return tr
+      })
 
-    sharedPosts.forEach(applyPostTransform)
-    localPosts.forEach(applyPostTransform)
-
-    function applyPostTransform (tr) {
-      var transform
-      if (typeof tr.name === "function") {
-        transform = tr.name
-      } else {
-        var target = resolve.sync(tr.name, { basedir: tr.base || mdir })
-        transform = require(target)
-      }
-
-      var src = transform(rootFile, source, extend(tr.opts, { post: true }))
-      if (src) source = src
-    }
-    return source
+    gdeps.prototype.applyTransforms(rootFile, source, localPosts, done);
   }
 }
 
