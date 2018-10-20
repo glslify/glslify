@@ -96,7 +96,7 @@ module.exports = function (file, opts) {
         } else if (isReqCallCompile(p, pp)) {
           // case: require('glslify').compile(...)
           pending++
-          rcallcompile(pp, done)
+          callcompile(pp, pp.callee.object.source(), done)
         } else if (p.type === 'TaggedTemplateExpression') {
           // case: require('glslify')`...`
           pending++
@@ -117,7 +117,7 @@ module.exports = function (file, opts) {
       } else if (isCallCompile(node, glvar)) {
         // case: glvar.compile(...)
         pending++
-        callcompile(node.parent.parent, done)
+        callcompile(node.parent.parent, glvar, done)
       }
     }
 
@@ -161,8 +161,8 @@ module.exports = function (file, opts) {
         })
       }
     }
-    function callcompile (p, cb) {
-      var mfile = p.arguments[0].value
+    function callcompile (p, glvar, cb) {
+      var mfile = evaluate(p.arguments[0])
       var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
       var d = createDeps({ cwd: mdir })
       d.inline(mfile, mdir, ondeps)
@@ -191,20 +191,6 @@ module.exports = function (file, opts) {
           })
         }
       })
-    }
-    function rcallcompile (p, cb) {
-      var marg = evaluate(p.arguments[0])
-      var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps({ cwd: mdir })
-      d.inline(marg, mdir, ondeps)
-      function ondeps (err, deps) {
-        if (err) return d.emit('error', err)
-        applyPostTransforms(null, deps, mopts, function (err, bsrc) {
-          if (err) return d.emit('error', err)
-          p.update(p.callee.object.source()+'(['+JSON.stringify(bsrc)+'])')
-          cb()
-        })
-      }
     }
     function done () {
       if (--pending === 0) {
