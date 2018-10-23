@@ -19,7 +19,7 @@ test('browserify transform: do not fail with async/await syntax', function (t) {
     'const foo = async () => {};'
   ]).pipe(glslStream)
     .pipe(bl(bundled))
-  
+
   function bundled (err, src) {
     if (err) return t.fail(err)
     var expected = [
@@ -41,7 +41,7 @@ test('browserify transform: do not fail with rest spread', function (t) {
     'const foo = { ...{ bar: 2 } };'
   ]).pipe(glslStream)
     .pipe(bl(bundled))
-  
+
   function bundled (err, src) {
     if (err) return t.fail(err)
     var expected = [
@@ -140,7 +140,7 @@ test('browserify transform: applying a global transform', function(t) {
 test('browserify transform: applying a post transform', function(t) {
   browserify({ basedir: __dirname }).add(from([
     'var glslify = require("../")\n',
-    'console.log(glslify.file("./fixtures/post-transform.glsl", { transform: [["./post-transform.js", { post: true }]] }))'
+    'console.log(glslify.file("./fixtures/post-transform.glsl", { transform: [["./check-contents.js", { post: true, contents: ["// include 1", "// include 2"] }]] }))'
   ]))
     .transform(glslify)
     .bundle()
@@ -149,25 +149,8 @@ test('browserify transform: applying a post transform', function(t) {
   function bundled(err, bundle) {
     if (err) return t.ifError(err)
 
-    var post = require('./fixtures/post-transform.js')
-    var file = require.resolve('./fixtures/post-transform.glsl')
-    var src  = fs.readFileSync(file, 'utf8')
-
-    glslDeps().transform(post, {
-      post: true
-    }).add(file, function(err, tree) {
-      if (err) return t.ifError(err)
-
-      post(null, glslBundle(tree), {
-        post: true
-      }, function(err, data) {
-        var glslString = JSON.stringify(data)
-
-        t.ok(String(bundle).toUpperCase().indexOf(glslString.split(/\n|\\n/)[0].toUpperCase()) !== -1, 'Contains equivalent output to glslify')
-        t.ok(tree.length, 'Contains at least one file')
-        t.end()
-      })
-    })
+    t.ok(String(bundle).indexOf('#define CHECK_CONTENTS 1') !== -1, "post transform ran successfully")
+    t.end()
   }
 })
 
@@ -214,7 +197,7 @@ test('browserify transform: ensure things work with one-line shader string', fun
     'console.log(glslify("void main () {}"))'
   ]).pipe(glslify('/test/file/stream.js', { basedir: __dirname }))
     .pipe(bl(bundled))
-  
+
   function bundled (err, src) {
     if (err) return t.fail(err)
     var expected = [
@@ -233,7 +216,7 @@ test('browserify transform: allow import statements in same file', function (t) 
     'console.log(glslify("void main () {}"))'
   ]).pipe(glslify('/test/file/stream.js', { basedir: __dirname }))
     .pipe(bl(bundled))
-  
+
   function bundled (err, src) {
     if (err) return t.fail(err)
     var expected = [
@@ -272,6 +255,71 @@ test('browserify transform: direct module require', function(t) {
       t.ifError(err, 'executed without errors')
     })
   }
+})
+
+test('filename passed to post transform when loaded from a file', function(t) {
+  t.plan(6)
+
+  var bopts = {
+    basedir: __dirname,
+    transform: [
+      [glslify, {
+        post: [require.resolve("./fixtures/replace-with-file")]
+      }]
+    ]
+  }
+
+  browserify(bopts).add(from([
+    'var glx = require("../")\n',
+    'console.log(glx.file("./fixtures/globe.frag"), "glslify")'
+  ])).bundle(check(t.equal))
+
+  browserify(bopts).add(from([
+    'var glx = require("../")\n',
+    'console.log(glx("./fixtures/globe.frag"), "glslify")'
+  ])).bundle(check(t.equal))
+
+  browserify(bopts).add(from([
+    'var glx = require("../")\n',
+    'console.log(glx`void main () {}`, "glslify")'
+  ])).bundle(check(t.notEqual))
+
+  function check (assert) {
+    return function (err, bundle) {
+      t.error(err)
+      Function(['console'],bundle.toString('utf8'))({
+        log: function (file) {
+          assert(file, require.resolve("./fixtures/globe.frag"), "filename is included")
+        }
+      })
+    }
+  }
+})
+
+test('post transforms with post option are included', function(t) {
+  t.plan(1)
+
+  browserify({
+    basedir: __dirname,
+    transform: [
+      [glslify, {
+        transform: [
+          [require.resolve("./fixtures/check-contents"), {
+            post: true,
+            contents: [
+              '#define CHECK_1',
+              '#define CHECK_2'
+            ]
+          }],
+        ]
+      }]
+    ]
+  }).add(from([
+    'var glx = require("../")\n',
+    'console.log(glx.file("./fixtures/post-transform-check.glsl"), "glslify")'
+  ])).bundle(function (err, bundle) {
+    t.error(err)
+  })
 })
 
 test('case 1: require expression with template string', function(t) {
