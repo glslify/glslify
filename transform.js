@@ -86,6 +86,10 @@ module.exports = function (file, opts) {
           // case: require('glslify')(...)
           pending++
           callexpr(p, done)
+        } else if (p.type === 'AssignmentExpression') {
+          // case: var glvar;
+          //       glvar = require('glslify')
+          glvar = p.left.name
         } else if (p.type === 'VariableDeclarator') {
           // case: var glvar = require('glslify')
           glvar = p.id.name
