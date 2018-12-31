@@ -1,4 +1,4 @@
-var falafel = require('falafel')
+var transformAst = require('transform-ast')
 var duplexify = require('duplexify')
 var through = require('through2')
 var concat = require('concat-stream')
@@ -72,7 +72,7 @@ module.exports = function (file, opts) {
       return
     }
 
-    try { var fout = falafel(src, parseOptions, onnode) }
+    try { var fout = transformAst(src, parseOptions, onnode) }
     catch (err) { return d.emit('error', err) }
     done()
 
