@@ -130,8 +130,8 @@ module.exports = function (file, opts) {
       var shadersrc = q.quasis.map(function (s) {
         return s.value.raw + '__GLX_PLACEHOLDER__'
       }).join('')
-      var d = createDeps({ cwd: mdir })
-      d.inline(shadersrc, mdir, function (err, deps) {
+      var depsObject = createDeps({ cwd: mdir })
+      depsObject.inline(shadersrc, mdir, function (err, deps) {
         if (err) return d.emit('error', err)
         applyPostTransforms(null, deps, {}, function (err, bsrc) {
           if (err) return d.emit('error', err)
@@ -148,13 +148,13 @@ module.exports = function (file, opts) {
     function callexpr (p, cb) {
       var marg = evaluate(p.arguments[0])
       var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps({ cwd: mdir })
+      var depsObject = createDeps({ cwd: mdir })
       var resolved = null
       if (/(void\s+main\s?\(.*\)|\n)/.test(marg)) { // source string
-        d.inline(marg, mdir, ondeps)
+        depsObject.inline(marg, mdir, ondeps)
       } else gresolve(marg, { basedir: mdir }, function (err, res) {
         if (err) d.emit('error', err)
-        else d.add(resolved = res, ondeps)
+        else depsObject.add(resolved = res, ondeps)
       })
       function ondeps (err, deps) {
         if (err) return d.emit('error', err)
@@ -184,8 +184,8 @@ module.exports = function (file, opts) {
       gresolve(mfile, { basedir: mdir }, function (err, res) {
         if (err) return d.emit('error', err)
         var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-        var d = createDeps({ cwd: path.dirname(res) })
-        d.add(res, ondeps)
+        var depsObject = createDeps({ cwd: path.dirname(res) })
+        depsObject.add(res, ondeps)
         function ondeps (err, deps) {
           if (err) return d.emit('error', err)
           applyPostTransforms(res, deps, mopts, function (err, bsrc) {
