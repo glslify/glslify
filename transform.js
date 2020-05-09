@@ -168,8 +168,8 @@ module.exports = function (file, opts) {
     function callcompile (p, glvar, cb) {
       var mfile = evaluate(p.arguments[0])
       var mopts = p.arguments[1] ? evaluate(p.arguments[1]) || {} : {}
-      var d = createDeps({ cwd: mdir })
-      d.inline(mfile, mdir, ondeps)
+      var depsObject = createDeps({ cwd: mdir })
+      depsObject.inline(mfile, mdir, ondeps)
       function ondeps (err, deps) {
         if (err) return d.emit('error', err)
         applyPostTransforms(null, deps, mopts, function (err, bsrc) {
