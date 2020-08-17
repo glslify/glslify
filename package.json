@@ -30,7 +30,7 @@
     "minimist": "^1.2.0",
     "resolve": "^1.1.5",
     "stack-trace": "0.0.9",
-    "static-eval": "^2.0.0",
+    "static-eval": "^2.0.5",
     "through2": "^2.0.1",
     "xtend": "^4.0.0"
   },
