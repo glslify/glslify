@@ -41,7 +41,7 @@
     "glsl-easings": "^1.0.0",
     "glsl-noise": "0.0.0",
     "glslify-hex": "^2.0.1",
-    "shell-quote": "^1.4.3",
+    "shell-quote": "^1.6.1",
     "tap-spec": "^2.2.1",
     "tape": "^4.6.0",
     "uniq": "^1.0.1"
