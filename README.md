@@ -69,7 +69,7 @@ Compile a shader inline using `glsl` as a
 
 Compile a shader using an inline shader string or a file name.
 
-These are convencience methods provided that call `glsl.compile()` or
+These are convenience methods provided that call `glsl.compile()` or
 `glsl.file()` accordingly. These methods are also provided for backwards
 compatibility with the previous `< 6` interface.
 
