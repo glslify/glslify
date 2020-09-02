@@ -18,7 +18,7 @@
     "Chris Dickinson <chris@neversaw.us> (http://neversaw.us)"
   ],
   "dependencies": {
-    "bl": "^1.0.1",
+    "bl": "^2.2.1",
     "concat-stream": "^1.5.2",
     "duplexify": "^3.4.5",
     "falafel": "^2.1.0",
