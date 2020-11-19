@@ -26,7 +26,7 @@
     "glsl-resolve": "0.0.1",
     "glsl-token-whitespace-trim": "^1.0.0",
     "glslify-bundle": "^5.0.0",
-    "glslify-deps": "^1.2.5",
+    "glslify-deps": "git://github.com/archmoj/glslify-deps.git#2e49a775f547647ae11643f2f87eb1b90e9eed3a",
     "minimist": "^1.2.5",
     "resolve": "^1.1.5",
     "stack-trace": "0.0.9",
